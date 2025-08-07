@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Профиль - {{ user.username }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4 profile-page">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Профиль пользователя</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Аватар и основная информация -->
+                        <div class="col-md-4 col-12 text-center mb-4 mb-md-0">
+                            <div class="mb-3">
+                                <div class="bg-dark rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px; border: 2px solid #3a3a3a;">
+                                    <i class="fas fa-user fa-2x text-white"></i>
+                                </div>
+                            </div>
+                            <h5 class="mb-2">{{ user.username }}</h5>
+                            {% if user.is_admin %}
+                                <span class="badge bg-danger mb-3">Администратор</span>
+                            {% else %}
+                                <span class="badge bg-secondary mb-3">Пользователь</span>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Детали профиля -->
+                        <div class="col-md-8 col-12">
+                            <div class="row">
+                                <div class="col-12 mb-3">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-envelope me-3 text-muted" style="width: 20px;"></i>
+                                        <div class="flex-grow-1">
+                                            <small class="text-muted d-block">Email</small>
+                                            <span class="text-white">{{ user.email }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-12 mb-3">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-id-card me-3 text-muted" style="width: 20px;"></i>
+                                        <div class="flex-grow-1">
+                                            <small class="text-muted d-block">ID пользователя</small>
+                                            <span class="text-white">{{ user.id }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-12 mb-3">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-calendar me-3 text-muted" style="width: 20px;"></i>
+                                        <div class="flex-grow-1">
+                                            <small class="text-muted d-block">Дата регистрации</small>
+                                            <span class="text-white">{{ user.created_at.strftime('%d.%m.%Y') if user.created_at else 'Не указано' }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Статус подписки -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-crown me-2"></i>Статус подписки
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if is_subscribed %}
+                        <div class="alert alert-success mb-0" style="background-color: rgba(40, 167, 69, 0.1) !important; border-color: #28a745 !important; color: #28a745 !important;">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-check-circle me-2"></i>
+                                <div class="flex-grow-1">
+                                    <strong style="color: #28a745 !important;">Подписка активна</strong><br>
+                                    <small style="color: #28a745 !important;">Действует до: {{ user.subscription_expires.strftime('%d.%m.%Y') if user.subscription_expires else 'Не указано' }}</small>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning mb-0" style="background-color: rgba(255, 193, 7, 0.1) !important; border-color: #ffc107 !important; color: #ffc107 !important;">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <div class="flex-grow-1">
+                                    <strong style="color: #ffc107 !important;">Подписка неактивна</strong><br>
+                                    <small style="color: #ffc107 !important;">Для доступа ко всем материалам необходима активная подписка.</small>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <a href="{{ url_for('main.subscription') }}" class="btn btn-primary w-100 w-md-auto" style="transition: none !important;">
+                                    <i class="fas fa-crown me-1"></i>Подписка
+                                </a>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

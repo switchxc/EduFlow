@@ -1,0 +1,97 @@
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager
+from flask_migrate import Migrate
+from flask_mail import Mail
+from flask_wtf.csrf import CSRFProtect
+from dotenv import load_dotenv
+import logging
+import os
+
+# Загружаем переменные окружения
+load_dotenv()
+
+db = SQLAlchemy()
+migrate = Migrate()
+login_manager = LoginManager()
+mail = Mail()
+csrf = CSRFProtect()
+
+def create_app():
+    app = Flask(__name__, instance_path=None)
+    
+    # Конфигурация из переменных окружения
+    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default-secret-key-change-in-production')
+    # Конфигурация базы данных - создаем в корне проекта
+    db_path = os.path.join(os.getcwd(), 'app.db')
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', f'sqlite:///{db_path}')
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    
+    # Конфигурация загрузки файлов
+    app.config['UPLOAD_FOLDER'] = os.getenv('UPLOAD_FOLDER', 'app/static/uploads')
+    app.config['CHAT_FILES_FOLDER'] = os.getenv('CHAT_FILES_FOLDER', 'app/static/chat_files')
+    app.config['TICKET_FILES_FOLDER'] = os.getenv('TICKET_FILES_FOLDER', 'app/static/ticket_files')
+    app.config['MAX_CONTENT_LENGTH'] = int(os.getenv('MAX_CONTENT_LENGTH', 20 * 1024 * 1024))
+    
+    # Конфигурация почты
+    app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER', 'smtp.gmail.com')
+    app.config['MAIL_PORT'] = int(os.getenv('MAIL_PORT', 587))
+    app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS', 'True').lower() == 'true'
+    app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME', 'your-email@gmail.com')
+    app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD', 'your-app-password')
+    app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER', 'your-email@gmail.com')
+    
+    # Конфигурация платежей
+    app.config['YOOKASSA_SHOP_ID'] = os.getenv('YOOKASSA_SHOP_ID', 'your-shop-id')
+    app.config['YOOKASSA_SECRET_KEY'] = os.getenv('YOOKASHA_SECRET_KEY', 'your-secret-key')
+    app.config['YOOKASSA_TEST_MODE'] = os.getenv('YOOKASSA_TEST_MODE', 'True').lower() == 'true'
+    
+    # Цены подписки
+    app.config['SUBSCRIPTION_PRICES'] = {
+        '1': float(os.getenv('SUBSCRIPTION_PRICE_1', 99.00)),
+        '3': float(os.getenv('SUBSCRIPTION_PRICE_3', 249.00)),
+        '6': float(os.getenv('SUBSCRIPTION_PRICE_6', 449.00)),
+        '12': float(os.getenv('SUBSCRIPTION_PRICE_12', 749.00))
+    }
+    app.config['SUBSCRIPTION_CURRENCY'] = os.getenv('SUBSCRIPTION_CURRENCY', 'RUB')
+    
+    # Настройки логирования
+    app.config['LOG_FILE'] = os.getenv('LOG_FILE', 'err.log')
+    app.config['LOG_LEVEL'] = os.getenv('LOG_LEVEL', 'INFO')
+    
+    # Настройка логирования
+    if not app.debug and not app.testing:
+        # Создаем директорию для логов если её нет
+        log_dir = os.path.dirname(app.config['LOG_FILE'])
+        if log_dir and not os.path.exists(log_dir):
+            os.makedirs(log_dir)
+        
+        # Настраиваем файловый обработчик
+        file_handler = logging.FileHandler(app.config['LOG_FILE'])
+        file_handler.setLevel(getattr(logging, app.config['LOG_LEVEL']))
+        
+        # Настраиваем формат логов
+        formatter = logging.Formatter(
+            '[%(asctime)s] %(levelname)s in %(module)s: %(message)s'
+        )
+        file_handler.setFormatter(formatter)
+        
+        # Добавляем обработчик к логгеру приложения
+        app.logger.addHandler(file_handler)
+        app.logger.setLevel(getattr(logging, app.config['LOG_LEVEL']))
+        
+        app.logger.info('Приложение запущено')
+    
+    db.init_app(app)
+    migrate.init_app(app, db)
+    login_manager.init_app(app)
+    mail.init_app(app)
+    csrf.init_app(app)
+    
+    login_manager.login_view = 'main.login'
+    login_manager.login_message = 'Пожалуйста, войдите в систему для доступа к этой странице.'
+    
+    from .views import bp
+    app.register_blueprint(bp)
+    
+    return app 

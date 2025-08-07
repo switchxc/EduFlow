@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Личный кабинет{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h2>Мои решения</h2>
+    {% for sub in submissions %}
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">{{ sub.material.title }}</h5>
+                <a href="{{ url_for('static', filename='uploads/' + sub.file) }}" target="_blank">Файл</a>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %} 

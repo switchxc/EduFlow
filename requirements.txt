@@ -1,0 +1,26 @@
+# Web Framework
+Flask==3.0.2
+Werkzeug==3.0.1
+
+# Database
+Flask-SQLAlchemy==3.1.1
+Flask-Migrate==4.0.5
+SQLAlchemy==2.0.23
+
+# Authentication & Security
+Flask-Login==0.6.3
+Flask-WTF==1.2.1
+WTForms==3.1.1
+email-validator==2.1.0
+
+# Email
+Flask-Mail==0.9.1
+
+# Payment Processing
+yookassa==3.0.0
+
+# HTTP Requests
+requests==2.31.0
+
+# Environment & Configuration
+python-dotenv==1.1.0
