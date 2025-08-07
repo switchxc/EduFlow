@@ -55,7 +55,7 @@ python3 scripts/create_admin.py
 Это создаст:
 - Все таблицы базы данных
 - Администратора с логином `admin` и паролем `admin123`
-- Email администратора: `admin@ck7project.online`
+- Email администратора: `admin@cysu.ru`
 
 ### 5. Запуск приложения
 ```bash
@@ -68,7 +68,7 @@ python3 run.py
 
 - **Логин**: admin
 - **Пароль**: admin123
-- **Email**: admin@ck7project.online
+- **Email**: admin@cysu.ru
 
 ⚠️ **Важно**: Измените пароль администратора после первого входа!
 

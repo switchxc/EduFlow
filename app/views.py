@@ -1561,7 +1561,7 @@ def wiki():
                             <div class="card">
                                 <div class="card-body">
                                     <h5><i class="fas fa-envelope"></i> Email поддержки</h5>
-                                    <p>Напишите нам на: <a href="mailto:admin@ck7project.online">admin@ck7project.online</a></p>
+                                    <p>Напишите нам на: <a href="mailto:admin@cysu.ru">admin@cysu.ru</a></p>
                                 </div>
                             </div>
                         </div>

@@ -35,7 +35,7 @@ def init_database():
         if not admin:
             admin = User(
                 username='admin',
-                email='admin@ck7project.online',
+                email='admin@cysu.ru',
                 password=generate_password_hash('admin123'),
                 is_admin=True,
                 is_verified=True
