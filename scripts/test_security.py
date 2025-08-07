@@ -234,7 +234,7 @@ def test_access_control(user):
             if hasattr(user, field):
                 value = getattr(user, field)
                 if field == "password":
-                    is_hashed = value.startswith("pbkdf2:sha256:")
+                    is_hashed = value.startswith("pbkdf2:sha256:") or value.startswith("scrypt:")
                     print(f"         {field}: {'Хеширован' if is_hashed else 'Не хеширован'}")
                 else:
                     print(f"         {field}: {'Заполнено' if value else 'Пусто'}")

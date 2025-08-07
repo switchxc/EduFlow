@@ -126,7 +126,6 @@ def test_password_reset(email_service, user):
         
         # Создаем запись в базе данных
         reset = PasswordReset(
-            user_id=user.id,
             email=user.email,
             code=reset_code,
             expires_at=datetime.utcnow() + timedelta(hours=1)
@@ -173,7 +172,7 @@ def test_reset_codes(user):
     try:
         print(f"   🔐 Проверка кодов сброса пароля для {user.username}")
         
-        resets = PasswordReset.query.filter_by(user_id=user.id).all()
+        resets = PasswordReset.query.filter_by(email=user.email).all()
         
         if not resets:
             print("      ⚠️  Коды сброса не найдены")
@@ -203,8 +202,8 @@ def cleanup_test_data(user):
         EmailVerification.query.filter_by(user_id=user.id).delete()
         
         # Удаляем коды сброса пароля
-        resets_count = PasswordReset.query.filter_by(user_id=user.id).count()
-        PasswordReset.query.filter_by(user_id=user.id).delete()
+        resets_count = PasswordReset.query.filter_by(email=user.email).count()
+        PasswordReset.query.filter_by(email=user.email).delete()
         
         # Удаляем пользователя
         db.session.delete(user)

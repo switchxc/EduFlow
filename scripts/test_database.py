@@ -117,7 +117,7 @@ def create_test_data():
         for i in range(3):
             material = Material(
                 title=f"Тестовый материал {i+1}",
-                content=f"Содержание тестового материала {i+1}",
+                description=f"Содержание тестового материала {i+1}",
                 type="lecture" if i % 2 == 0 else "assignment",
                 subject_id=subject.id,
                 created_by=user.id
@@ -229,6 +229,7 @@ def test_data_validation():
             print("      ❌ Ошибка: Дубликат username не должен быть создан")
         except Exception as e:
             print("      ✅ Валидация username работает корректно")
+            db.session.rollback()
         
         # Тест обязательных полей
         try:
@@ -242,6 +243,7 @@ def test_data_validation():
             print("      ❌ Ошибка: Пустой username не должен быть создан")
         except Exception as e:
             print("      ✅ Валидация обязательных полей работает корректно")
+            db.session.rollback()
         
     except Exception as e:
         print(f"   ❌ Ошибка при тестировании валидации: {e}")
