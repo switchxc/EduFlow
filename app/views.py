@@ -365,7 +365,7 @@ def payment_success():
             "error",
         )
 
-    return redirect(url_for("main.index"))
+    return render_template("payment/success.html")
 
 
 @bp.route("/payment/cancel")
