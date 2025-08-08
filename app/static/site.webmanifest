@@ -1,7 +1,7 @@
 {
-    "name": "EduFlow - Образовательная платформа",
-    "short_name": "EduFlow",
-    "description": "Современная образовательная платформа для студентов и преподавателей",
+    "name": "cysu - Code Your Skills Upgrade",
+    "short_name": "cysu",
+    "description": "Современная образовательная платформа для студентов и преподавателей в сфере IT",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#0e0e0f",
@@ -9,13 +9,13 @@
     "orientation": "portrait-primary",
     "icons": [
         {
-            "src": "/static/icons/android-chrome-192x192.png",
+            "src": "/static/icons/android-chrome-192x192.png?v=2",
             "sizes": "192x192",
             "type": "image/png",
             "purpose": "any maskable"
         },
         {
-            "src": "/static/icons/android-chrome-512x512.png",
+            "src": "/static/icons/android-chrome-512x512.png?v=2",
             "sizes": "512x512",
             "type": "image/png",
             "purpose": "any maskable"

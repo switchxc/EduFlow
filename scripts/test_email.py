@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Скрипт для тестирования email функциональности EduFlow
+Скрипт для тестирования email функциональности cysu
 
 Использование:
     python scripts/test_email.py
@@ -28,7 +28,7 @@ def test_email_service():
     app = create_app()
     
     with app.app_context():
-        print("📧 Тестирование email функциональности EduFlow")
+        print("📧 Тестирование email функциональности cysu")
         print("=" * 60)
         
         # Создаем тестового пользователя

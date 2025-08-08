@@ -23,14 +23,14 @@ class EmailService:
             bool: True если email отправлен успешно, False в противном случае
         """
         try:
-            subject = "Добро пожаловать в EduFlow! Подтвердите ваш email"
+            subject = "Добро пожаловать в cysu! Подтвердите ваш email"
             html_body = f"""
             <!DOCTYPE html>
             <html lang="ru">
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Подтверждение регистрации - EduFlow</title>
+                <title>Подтверждение регистрации - cysu</title>
                 <style>
                     body {{
                         margin: 0;
@@ -125,7 +125,7 @@ class EmailService:
             <body>
                 <div class="container">
                     <div class="header">
-                        <h1>Добро пожаловать в EduFlow</h1>
+                        <h1>Добро пожаловать в cysu</h1>
                         <p>Современная образовательная платформа нового поколения</p>
                     </div>
                     <div class="content">
@@ -139,11 +139,11 @@ class EmailService:
                             <div class="code-info">Код действителен в течение 15 минут</div>
                         </div>
                         <div class="warning">
-                            Если вы не регистрировались в EduFlow, просто проигнорируйте это письмо.
+                            Если вы не регистрировались в cysu, просто проигнорируйте это письмо.
                         </div>
                     </div>
                     <div class="footer">
-                        <p>© 2024 EduFlow. Все права защищены.</p>
+                        <p>© 2025 cysu. Все права защищены.</p>
                         <p>Современная образовательная платформа</p>
                     </div>
                 </div>
@@ -151,7 +151,7 @@ class EmailService:
             </html>
             """
             text_body = f"""
-            Добро пожаловать в EduFlow!
+            Добро пожаловать в cysu!
             
             Для завершения регистрации введите следующий код подтверждения:
             
@@ -159,9 +159,9 @@ class EmailService:
             
             Код действителен в течение 15 минут.
             
-            Если вы не регистрировались в EduFlow, просто проигнорируйте это письмо.
+            Если вы не регистрировались в cysu, просто проигнорируйте это письмо.
             
-            © 2024 EduFlow. Все права защищены.
+            © 2025 cysu. Все права защищены.
             """
             msg = Message(
                 subject=subject, recipients=[user_email], html=html_body, body=text_body
@@ -188,14 +188,14 @@ class EmailService:
             bool: True если email отправлен успешно, False в противном случае
         """
         try:
-            subject = "Новый код подтверждения - EduFlow"
+            subject = "Новый код подтверждения - cysu"
             html_body = f"""
             <!DOCTYPE html>
             <html lang="ru">
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Новый код подтверждения - EduFlow</title>
+                <title>Новый код подтверждения - cysu</title>
                 <style>
                     body {{
                         margin: 0;
@@ -304,11 +304,11 @@ class EmailService:
                             <div class="code-info">Код действителен в течение 15 минут</div>
                         </div>
                         <div class="warning">
-                            Если вы не регистрировались в EduFlow, просто проигнорируйте это письмо.
+                            Если вы не регистрировались в cysu, просто проигнорируйте это письмо.
                         </div>
                     </div>
                     <div class="footer">
-                        <p>© 2024 EduFlow. Все права защищены.</p>
+                        <p>© 2025 cysu. Все права защищены.</p>
                         <p>Современная образовательная платформа</p>
                     </div>
                 </div>
@@ -316,7 +316,7 @@ class EmailService:
             </html>
             """
             text_body = f"""
-            Новый код подтверждения - EduFlow
+            Новый код подтверждения - cysu
             
             Для завершения регистрации введите следующий код подтверждения:
             
@@ -324,9 +324,9 @@ class EmailService:
             
             Код действителен в течение 15 минут.
             
-            Если вы не регистрировались в EduFlow, просто проигнорируйте это письмо.
+            Если вы не регистрировались в cysu, просто проигнорируйте это письмо.
             
-            © 2024 EduFlow. Все права защищены.
+            © 2025 cysu. Все права защищены.
             """
             msg = Message(
                 subject=subject, recipients=[user_email], html=html_body, body=text_body
@@ -355,14 +355,14 @@ class EmailService:
             bool: True если email отправлен успешно, False в противном случае
         """
         try:
-            subject = "Восстановление пароля - EduFlow"
+            subject = "Восстановление пароля - cysu"
             html_body = f"""
             <!DOCTYPE html>
             <html lang="ru">
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Восстановление пароля - EduFlow</title>
+                <title>Восстановление пароля - cysu</title>
                 <style>
                     body {{
                         margin: 0;
@@ -474,7 +474,7 @@ class EmailService:
                         </div>
                     </div>
                     <div class="footer">
-                        <p>© 2024 EduFlow. Все права защищены.</p>
+                        <p>© 2025 cysu. Все права защищены.</p>
                         <p>Современная образовательная платформа</p>
                     </div>
                 </div>
@@ -482,7 +482,7 @@ class EmailService:
             </html>
             """
             text_body = f"""
-            Восстановление пароля - EduFlow
+            Восстановление пароля - cysu
             
             Вы запросили восстановление пароля. Введите следующий код для создания нового пароля:
             
@@ -492,7 +492,7 @@ class EmailService:
             
             Важно: Если вы не запрашивали восстановление пароля, просто проигнорируйте это письмо.
             
-            © 2024 EduFlow. Все права защищены.
+            © 2025 cysu. Все права защищены.
             """
             msg = Message(
                 subject=subject, recipients=[user_email], html=html_body, body=text_body

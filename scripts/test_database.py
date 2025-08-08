@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Скрипт для тестирования базы данных и моделей EduFlow
+Скрипт для тестирования базы данных и моделей cysu
 
 Использование:
     python scripts/test_database.py
@@ -29,7 +29,7 @@ def test_database():
     app = create_app()
     
     with app.app_context():
-        print("🗄️ Тестирование базы данных EduFlow")
+        print("🗄️ Тестирование базы данных cysu")
         print("=" * 60)
         
         # Тест 1: Подключение к базе данных

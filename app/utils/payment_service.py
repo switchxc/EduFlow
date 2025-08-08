@@ -210,7 +210,7 @@ class YooKassaService:
                         "customer": {"email": user.email},
                         "items": [
                             {
-                                "description": "Подписка на образовательную платформу EduFlow",
+                                "description": "Подписка на образовательную платформу cysu",
                                 "quantity": "1",
                                 "amount": {
                                     "value": str(payment_price),

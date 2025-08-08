@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Скрипт для очистки всех тикетов из базы данных EduFlow
+Скрипт для очистки всех тикетов из базы данных cysu
 
 Использование:
     python clear_tickets.py
@@ -132,7 +132,7 @@ def clear_ticket_files_from_disk() -> None:
 
 def main() -> None:
     """Главная функция скрипта"""
-    print("🧹 Скрипт очистки тикетов EduFlow")
+    print("🧹 Скрипт очистки тикетов cysu")
     print("=" * 50)
     
     # Очищаем базу данных

@@ -6,20 +6,23 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="EduFlow">
+    <meta name="apple-mobile-web-app-title" content="cysu">
     <meta name="theme-color" content="#0e0e0f">
     <meta name="msapplication-TileColor" content="#0e0e0f">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     
     <!-- Фавиконы и PWA иконки -->
-    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='icons/favicon-32x32.png') }}">
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='icons/favicon-16x16.png') }}">
-    <link rel="icon" type="image/png" sizes="48x48" href="{{ url_for('static', filename='icons/favicon-48x48.png') }}">
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='icons/apple-touch-icon.png') }}">
-    <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
-    <meta name="msapplication-TileImage" content="{{ url_for('static', filename='icons/android-chrome-192x192.png') }}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico', v='2') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='icons/favicon-32x32.png', v='2') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='icons/favicon-16x16.png', v='2') }}">
+    <link rel="icon" type="image/png" sizes="48x48" href="{{ url_for('static', filename='icons/favicon-48x48.png', v='2') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='icons/apple-touch-icon.png', v='2') }}">
+    <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest', v='2') }}">
+    <meta name="msapplication-TileImage" content="{{ url_for('static', filename='icons/android-chrome-192x192.png', v='2') }}">
     
-    <title>{% block title %}EduFlow{% endblock %}</title>
+    <title>{% block title %}cysu - Code Your Skills Upgrade{% endblock %}</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" type="text/css">
@@ -309,6 +312,49 @@
         
         .chat-messages::-webkit-scrollbar-thumb:hover {
             background: #4a4a4a;
+        }
+        
+        /* Стили для анимации печатающегося текста */
+        .typing-container {
+            min-width: 200px;
+            position: relative;
+        }
+        
+        #typing-text {
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+        
+        .typing-cursor {
+            width: 2px;
+            height: 1.2em;
+            background-color: #007bff;
+            margin-left: 2px;
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 50% { background-color: transparent; }
+            51%, 100% { background-color: #007bff; }
+        }
+        
+        /* Адаптивность для мобильных устройств */
+        @media (max-width: 768px) {
+            .typing-container {
+                min-width: 150px;
+            }
+            #typing-text {
+                font-size: 0.8rem;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .typing-container {
+                min-width: 120px;
+            }
+            #typing-text {
+                font-size: 0.7rem;
+            }
         }
         
         .notification.auth-notification .notification-title {
@@ -664,7 +710,14 @@
 <body>
 <nav class="navbar navbar-expand-lg navbar-dark mb-2">
     <div class="container">
-        <a class="navbar-brand" href="{{ url_for('main.index') }}">EduFlow</a>
+        <div class="navbar-brand d-flex align-items-center">
+            <a href="{{ url_for('main.index') }}" class="text-decoration-none text-white fw-bold me-1">cysu</a>
+            <span class="text-primary fw-bold">•</span>
+            <div class="typing-container ms-2 d-flex align-items-center">
+                <span id="typing-text" class="text-muted fw-normal"></span>
+                <span id="typing-cursor" class="typing-cursor"></span>
+            </div>
+        </div>
         
         <!-- Кнопка мобильного меню -->
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -736,7 +789,7 @@
                     <div class="bg-primary rounded me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
                         <i class="fas fa-graduation-cap text-white"></i>
                     </div>
-                    <span class="text-white fw-bold fs-5">EduFlow</span>
+                    <span class="text-white fw-bold fs-5">cysu</span>
                 </div>
             </div>
             <div class="col-md-6 col-6">
@@ -778,7 +831,7 @@
         <div class="row" style="border-top: 1px solid #3a3a3a; padding-top: 1rem;">
             <div class="col-md-6 col-6 mb-2 mb-md-0">
                 <small class="text-muted text-center text-md-start d-block">
-                    EduFlow, 2025 | Вагнер Никита Максимович | ИНН: 645126224659 | <a href="https://cysu.ru" class="text-muted text-decoration-none">cysu.ru</a> | Все права защищены.
+                    cysu, 2025 | Вагнер Никита Максимович | ИНН: 645126224659 | <a href="https://cysu.ru" class="text-muted text-decoration-none">cysu.ru</a> | Все права защищены.
                 </small>
             </div>
             <div class="col-md-6 col-6">
@@ -991,7 +1044,83 @@
 }
 </style>
 
-<script>
+    <script>
+// Принудительное обновление иконок при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    // Обновляем все иконки с новым параметром версии
+    const icons = document.querySelectorAll('link[rel*="icon"], link[rel="apple-touch-icon"]');
+    icons.forEach(function(icon) {
+        const href = icon.getAttribute('href');
+        if (href && !href.includes('v=')) {
+            icon.setAttribute('href', href + (href.includes('?') ? '&' : '?') + 'v=' + Date.now());
+        }
+    });
+    
+    // Анимация печатающегося текста в навбаре
+    function initTypingAnimation() {
+        const typingText = document.getElementById('typing-text');
+        
+        if (typingText) {
+            {% if current_user.is_authenticated %}
+            // Для авторизованных пользователей - полная анимация с текстом
+            const texts = [
+                'learn & code',
+                'code & study',
+                'by cysu',
+                'aka ck7luman'
+            ];
+            
+            let textIndex = 0;
+            let charIndex = 0;
+            let isDeleting = false;
+            let typingSpeed = 100;
+            
+            function typeText() {
+                const currentText = texts[textIndex];
+                
+                if (isDeleting) {
+                    // Удаляем символы
+                    typingText.textContent = currentText.substring(0, charIndex - 1);
+                    charIndex--;
+                    typingSpeed = 50;
+                } else {
+                    // Добавляем символы
+                    typingText.textContent = currentText.substring(0, charIndex + 1);
+                    charIndex++;
+                    typingSpeed = 100;
+                }
+                
+                // Логика переключения между текстами
+                if (!isDeleting && charIndex === currentText.length) {
+                    // Пауза перед удалением
+                    typingSpeed = 2000;
+                    isDeleting = true;
+                } else if (isDeleting && charIndex === 0) {
+                    // Переходим к следующему тексту
+                    isDeleting = false;
+                    textIndex = (textIndex + 1) % texts.length;
+                    typingSpeed = 500;
+                }
+                
+                setTimeout(typeText, typingSpeed);
+            }
+            
+            // Запускаем анимацию
+            setTimeout(typeText, 1000);
+            {% else %}
+            // Для неавторизованных пользователей - только мигающий курсор (фича-загадка)
+            typingText.textContent = '';
+            {% endif %}
+        } else {
+            // Пробуем еще раз через 100мс
+            setTimeout(initTypingAnimation, 100);
+        }
+    }
+    
+    // Запускаем инициализацию анимации
+    initTypingAnimation();
+});
+
 let chatOpen = false;
 let lastMessageId = 0;
 let isDragging = false;

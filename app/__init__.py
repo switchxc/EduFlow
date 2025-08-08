@@ -48,10 +48,10 @@ def create_app():
     
     # Цены подписки
     app.config['SUBSCRIPTION_PRICES'] = {
-        '1': float(os.getenv('SUBSCRIPTION_PRICE_1', 99.00)),
-        '3': float(os.getenv('SUBSCRIPTION_PRICE_3', 249.00)),
-        '6': float(os.getenv('SUBSCRIPTION_PRICE_6', 449.00)),
-        '12': float(os.getenv('SUBSCRIPTION_PRICE_12', 749.00))
+        '1': float(os.getenv('SUBSCRIPTION_PRICE_1', 89.00)),
+        '3': float(os.getenv('SUBSCRIPTION_PRICE_3', 199.00)),
+        '6': float(os.getenv('SUBSCRIPTION_PRICE_6', 349.00)),
+        '12': float(os.getenv('SUBSCRIPTION_PRICE_12', 469.00))
     }
     app.config['SUBSCRIPTION_CURRENCY'] = os.getenv('SUBSCRIPTION_CURRENCY', 'RUB')
     
@@ -93,5 +93,22 @@ def create_app():
     
     from .views import bp
     app.register_blueprint(bp)
+    
+    # Настройка заголовков кеширования для статических файлов
+    @app.after_request
+    def add_cache_headers(response):
+        if response.mimetype in ['image/png', 'image/x-icon', 'image/jpeg', 'image/gif', 'image/webp']:
+            # Для иконок и изображений - короткий кеш
+            response.cache_control.max_age = 300  # 5 минут
+            response.cache_control.public = True
+        elif response.mimetype in ['text/css', 'application/javascript']:
+            # Для CSS и JS - средний кеш
+            response.cache_control.max_age = 3600  # 1 час
+            response.cache_control.public = True
+        else:
+            # Для остальных файлов - стандартный кеш
+            response.cache_control.max_age = 86400  # 24 часа
+            response.cache_control.public = True
+        return response
     
     return app 

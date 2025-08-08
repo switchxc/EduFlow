@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Скрипт для тестирования работы сайта EduFlow
+Скрипт для тестирования работы сайта cysu
 
 Использование:
     python scripts/test_site.py
@@ -35,7 +35,7 @@ def test_site_functionality() -> None:
     app = create_app()
     
     with app.app_context():
-        print("🌐 Тестирование сайта EduFlow")
+        print("🌐 Тестирование сайта cysu")
         print("=" * 60)
         
         # Тест 1: Подключение к базе данных

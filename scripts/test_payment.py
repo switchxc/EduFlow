@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Скрипт для тестирования платежной системы EduFlow
+Скрипт для тестирования платежной системы cysu
 
 Использование:
     python scripts/test_payment.py
@@ -31,7 +31,7 @@ def test_payment_service() -> None:
     app = create_app()
     
     with app.app_context():
-        print("🧪 Тестирование платежной системы EduFlow")
+        print("🧪 Тестирование платежной системы cysu")
         print("=" * 60)
         
         # Создаем тестового пользователя

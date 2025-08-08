@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Скрипт для тестирования безопасности и аутентификации EduFlow
+Скрипт для тестирования безопасности и аутентификации cysu
 
 Использование:
     python scripts/test_security.py
@@ -30,7 +30,7 @@ def test_security():
     app = create_app()
     
     with app.app_context():
-        print("🔒 Тестирование безопасности EduFlow")
+        print("🔒 Тестирование безопасности cysu")
         print("=" * 60)
         
         # Тест 1: Хеширование паролей
