@@ -72,3 +72,4 @@ config.py
 
 GITHUB_SETUP.md
 /mail
+*.json
