@@ -1,4 +1,3 @@
-# cysu v1.5.0 - Точка входа приложения
 from app import create_app
 
 app = create_app()
