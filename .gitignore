@@ -69,7 +69,4 @@ app/static/ticket_files/
 config_secret.py
 secrets.py
 config.py 
-
-GITHUB_SETUP.md
-/mail
 *.json
