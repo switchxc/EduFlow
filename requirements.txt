@@ -1,16 +1,12 @@
-# cysu v1.5.0 - Зависимости проекта
-# Образовательная платформа learn & code
 
 # Web Framework
 Flask==3.0.2
 Werkzeug==3.0.1
 
-# Database
+# Database & Authentication & Security
 Flask-SQLAlchemy==3.1.1
 Flask-Migrate==4.0.5
 SQLAlchemy==2.0.23
-
-# Authentication & Security
 Flask-Login==0.6.3
 Flask-WTF==1.2.1
 WTForms==3.1.1
