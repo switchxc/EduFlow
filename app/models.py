@@ -2,6 +2,7 @@ from . import db
 from flask_login import UserMixin
 from datetime import datetime, timedelta
 import secrets
+from typing import Optional
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -208,3 +209,54 @@ class Notification(db.Model):
     
     def __repr__(self) -> str:
         return f'<Notification {self.id}: {self.title}>' 
+
+
+class ShortLink(db.Model):
+    """Модель для хранения сокращённых ссылок"""
+    id = db.Column(db.Integer, primary_key=True)
+    code = db.Column(db.String(16), unique=True, nullable=False, index=True)
+    original_url = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    clicks = db.Column(db.Integer, default=0, nullable=False)
+
+    def __repr__(self) -> str:
+        return f'<ShortLink {self.code} -> {self.original_url}>'
+
+    @staticmethod
+    def generate_code(length: int = 3) -> str:
+        """Генерирует короткий код длиной length"""
+        alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+        return ''.join(secrets.choice(alphabet) for _ in range(length))
+
+    @classmethod
+    def create_unique(cls, original_url: str, max_tries: int = 5) -> 'ShortLink':
+        """Создаёт уникальную запись с новым кодом"""
+        for _ in range(max_tries):
+            code = cls.generate_code()
+            if not cls.query.filter_by(code=code).first():
+                link = cls(code=code, original_url=original_url)
+                db.session.add(link)
+                db.session.commit()
+                return link
+        # Если по каким-то причинам код не удалось сгенерировать
+        # увеличиваем длину и пробуем ещё раз
+        code = cls.generate_code(8)
+        link = cls(code=code, original_url=original_url)
+        db.session.add(link)
+        db.session.commit()
+        return link
+
+
+class ShortLinkRule(db.Model):
+    """Политика ограничения для короткой ссылки (время/количество кликов)."""
+    id = db.Column(db.Integer, primary_key=True)
+    short_link_id = db.Column(db.Integer, db.ForeignKey('short_link.id'), nullable=False, unique=True)
+    expires_at = db.Column(db.DateTime, nullable=True)
+    max_clicks = db.Column(db.Integer, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    # Связь
+    short_link = db.relationship('ShortLink', backref=db.backref('rule', uselist=False, cascade='all, delete-orphan'))
+
+    def __repr__(self) -> str:
+        return f'<ShortLinkRule link_id={self.short_link_id} expires_at={self.expires_at} max_clicks={self.max_clicks}>'

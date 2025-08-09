@@ -23,6 +23,8 @@ from .models import (
     TicketFile,
     TicketMessage,
     Notification,
+    ShortLink,
+    ShortLinkRule,
 )
 from .forms import (
     LoginForm,
@@ -33,6 +35,7 @@ from .forms import (
     EmailVerificationForm,
     PasswordResetRequestForm,
     PasswordResetForm,
+    ShortenForm,
 )
 from . import db, login_manager
 from .utils.payment_service import YooKassaService
@@ -44,6 +47,18 @@ import string
 from sqlalchemy.orm import joinedload
 from datetime import datetime, timedelta
 import json
+import re
+from .services.shortlink_service import (
+    create_short_link,
+    normalize_url,
+    parse_ttl,
+    parse_max_clicks,
+    check_access,
+    register_click,
+    reset_clicks,
+    update_rule,
+    delete_short_link,
+)
 
 bp = Blueprint("main", __name__)
 
@@ -844,6 +859,56 @@ def terms():
     return render_template("static/terms.html")
 
 
+@bp.route("/s", methods=["GET", "POST"])
+@login_required
+def shorten_page():
+    """Скрытая страница сокращения ссылок. Доступ только по прямой ссылке."""
+    form = ShortenForm()
+    short_url = None
+    if form.validate_on_submit():
+        link = create_short_link(
+            original_url=form.url.data,
+            ttl=form.ttl.data,
+            max_clicks=form.max_clicks.data,
+        )
+        short_url = url_for('main.resolve_shortlink', code=link.code, _external=True)
+        flash("Ссылка сокращена", "success")
+    return render_template("static/shorten.html", form=form, short_url=short_url)
+
+
+@bp.route("/l/<string:code>")
+def resolve_shortlink(code: str):
+    """Редирект по короткому коду"""
+    current_app.logger.info(f"shortlink: resolve attempt code={code}")
+    link = ShortLink.query.filter_by(code=code).first()
+    if not link:
+        current_app.logger.info(f"shortlink: not found code={code}")
+        return redirect(url_for('main.not_found'))
+    # Проверяем правила
+    allowed, reason = check_access(link)
+    if not allowed:
+        current_app.logger.info(f"shortlink: blocked reason={reason}")
+        return redirect(url_for('main.shortlink_expired'))
+    register_click(link)
+    current_app.logger.info(f"shortlink: redirecting to original clicks_now={link.clicks}")
+    return redirect(link.original_url)
+
+
+@bp.route("/l/expired")
+def shortlink_expired():
+    return render_template("static/shortlink_expired.html")
+
+
+@bp.route("/404")
+def not_found():
+    return render_template("static/404.html"), 404
+
+
+@bp.app_errorhandler(404)
+def handle_404(error):
+    return redirect(url_for('main.not_found'))
+
+
 @bp.route("/material/<int:material_id>")
 @login_required
 def material_detail(material_id):
@@ -1314,6 +1379,70 @@ def admin_users():
             db.session.rollback()  # Откатываем транзакцию при ошибке
             flash("Ошибка при изменении подписки", "error")
 
+    # Управление короткими ссылками (создание)
+    if request.method == "POST" and request.form.get("create_shortlink_url"):
+        try:
+            original_url = request.form.get("create_shortlink_url", "")
+            ttl = request.form.get("create_shortlink_ttl", "") or ""
+            max_clicks_val = request.form.get("create_shortlink_max_clicks", "") or ""
+
+            link = create_short_link(original_url, ttl, max_clicks_val)
+            flash("Короткая ссылка создана", "success")
+        except Exception as e:
+            current_app.logger.error(f"Ошибка создания короткой ссылки: {str(e)}")
+            db.session.rollback()
+            flash("Ошибка создания короткой ссылки", "error")
+
+    # Управление короткими ссылками (сброс кликов)
+    if request.method == "POST" and request.form.get("reset_clicks_shortlink_id"):
+        try:
+            sid = int(request.form.get("reset_clicks_shortlink_id"))
+            link = ShortLink.query.get(sid)
+            if link:
+                reset_clicks(link)
+                flash("Счётчик переходов сброшен", "success")
+            else:
+                flash("Ссылка не найдена", "error")
+        except Exception as e:
+            current_app.logger.error(f"Ошибка сброса кликов: {str(e)}")
+            db.session.rollback()
+            flash("Ошибка сброса кликов", "error")
+
+    # Управление короткими ссылками (удаление)
+    if request.method == "POST" and request.form.get("delete_shortlink_id"):
+        try:
+            sid = int(request.form.get("delete_shortlink_id"))
+            link = ShortLink.query.get(sid)
+            if link:
+                delete_short_link(link)
+                flash("Ссылка удалена", "success")
+            else:
+                flash("Ссылка не найдена", "error")
+        except Exception as e:
+            current_app.logger.error(f"Ошибка удаления короткой ссылки: {str(e)}")
+            db.session.rollback()
+            flash("Ошибка удаления короткой ссылки", "error")
+
+    # Управление короткими ссылками (обновление правил)
+    if request.method == "POST" and request.form.get("update_shortlink_id"):
+        try:
+            sid = int(request.form.get("update_shortlink_id"))
+            ttl = (request.form.get("update_shortlink_ttl", "") or "").strip()
+            max_clicks_val = (request.form.get("update_shortlink_max_clicks", "") or "").strip()
+            link = ShortLink.query.get(sid)
+            if not link:
+                flash("Ссылка не найдена", "error")
+            else:
+                update_rule(link, ttl=ttl, max_clicks=max_clicks_val)
+                flash("Правила ссылки обновлены", "success")
+        except Exception as e:
+            current_app.logger.error(f"Ошибка обновления правил короткой ссылки: {str(e)}")
+            db.session.rollback()
+            flash("Ошибка обновления правил короткой ссылки", "error")
+
+    # Получаем все короткие ссылки
+    short_links = ShortLink.query.order_by(ShortLink.created_at.desc()).all()
+
     # Получаем всех пользователей с информацией о подписке
     users = User.query.all()
 
@@ -1323,6 +1452,7 @@ def admin_users():
         form=form,
         password_map=password_map,
         message=message,
+        short_links=short_links,
     )
 
 

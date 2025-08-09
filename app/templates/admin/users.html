@@ -237,6 +237,132 @@
       </div>
     </div>
   </div>
+
+  <!-- Управление короткими ссылками -->
+  <div class="row g-4 mt-4">
+    <div class="col-12">
+      <div class="card shadow-sm border-0" style="background: #1a1a1a;">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0"><i class="fas fa-link me-2 text-primary"></i>Короткие ссылки</h5>
+            <span class="badge bg-secondary">{{ short_links|length }}</span>
+          </div>
+
+          <!-- Форма создания -->
+          <form method="post" class="row g-2 align-items-end mb-3">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="col-lg-6">
+              <label class="form-label">Оригинальная ссылка</label>
+              <input type="text" name="create_shortlink_url" class="form-control" placeholder="https://example.com/path">
+            </div>
+            <div class="col-lg-2">
+              <label class="form-label">Срок</label>
+              <select name="create_shortlink_ttl" class="form-select">
+                <option value="">Без ограничения</option>
+                <option value="3h">3 часа</option>
+                <option value="6h">6 часов</option>
+              </select>
+            </div>
+            <div class="col-lg-2">
+              <label class="form-label">Лимит</label>
+              <select name="create_shortlink_max_clicks" class="form-select">
+                <option value="">Без лимита</option>
+                <option value="1">1</option>
+                <option value="3">3</option>
+                <option value="5">5</option>
+              </select>
+            </div>
+            <div class="col-lg-2 d-grid">
+              <button type="submit" class="btn btn-primary"><i class="fas fa-plus me-1"></i>Создать</button>
+            </div>
+          </form>
+
+          <!-- Таблица ссылок -->
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead style="background: #2a2a2a;">
+                <tr>
+                  <th>ID</th>
+                  <th>Код</th>
+                  <th>Оригинал</th>
+                  <th>Клики</th>
+                  <th>Срок</th>
+                  <th>Лимит</th>
+                  <th>Создана</th>
+                  <th>Действия</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for sl in short_links %}
+                <tr>
+                  <td><span class="badge bg-secondary">{{ sl.id }}</span></td>
+                  <td><a href="{{ url_for('main.resolve_shortlink', code=sl.code, _external=True) }}" target="_blank">{{ sl.code }}</a></td>
+                  <td style="max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    <a href="{{ sl.original_url }}" target="_blank" class="text-decoration-none">{{ sl.original_url }}</a>
+                  </td>
+                  <td>{{ sl.clicks }}</td>
+                  <td>
+                    {% if sl.rule and sl.rule.expires_at %}
+                      {{ sl.rule.expires_at.strftime('%d.%m.%Y %H:%M') }}
+                    {% else %}
+                      —
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if sl.rule and sl.rule.max_clicks is not none %}
+                      {{ sl.rule.max_clicks }}
+                    {% else %}—{% endif %}
+                  </td>
+                  <td>{{ sl.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                  <td>
+                    <div class="d-flex gap-1">
+                      <!-- Сброс кликов -->
+                      <form method="post">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="reset_clicks_shortlink_id" value="{{ sl.id }}">
+                        <button type="submit" class="btn btn-sm btn-warning" title="Сбросить счётчик"><i class="fas fa-undo"></i></button>
+                      </form>
+                      <!-- Обновление правил -->
+                      <form method="post" class="d-flex gap-1">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="update_shortlink_id" value="{{ sl.id }}">
+                        <select name="update_shortlink_ttl" class="form-select form-select-sm" style="width: 130px;">
+                          <option value="">Без срока</option>
+                          <option value="3h">3 часа</option>
+                          <option value="6h">6 часов</option>
+                        </select>
+                        <select name="update_shortlink_max_clicks" class="form-select form-select-sm" style="width: 110px;">
+                          <option value="">Без лимита</option>
+                          <option value="1">1</option>
+                          <option value="3">3</option>
+                          <option value="5">5</option>
+                        </select>
+                        <button type="submit" class="btn btn-sm btn-success" title="Обновить"><i class="fas fa-save"></i></button>
+                      </form>
+                      <!-- Удаление -->
+                      <form method="post" onsubmit="return confirm('Удалить ссылку {{ sl.code }}?')">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="delete_shortlink_id" value="{{ sl.id }}">
+                        <button type="submit" class="btn btn-sm btn-danger" title="Удалить"><i class="fas fa-trash"></i></button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+                {% else %}
+                <tr>
+                  <td colspan="8" class="text-center text-muted py-4">
+                    <i class="fas fa-link fa-2x mb-2"></i>
+                    <div>Пока нет коротких ссылок</div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <style>
