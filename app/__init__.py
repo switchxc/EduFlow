@@ -1,3 +1,4 @@
+# cysu v1.5.0 - __init__.py
 from flask import Flask, request, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager

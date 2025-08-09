@@ -1,7 +1,7 @@
 {
     "name": "cysu - Code Your Skills Upgrade",
     "short_name": "cysu",
-    "description": "Современная образовательная платформа для студентов и преподавателей в сфере IT",
+    "description": "Современная образовательная платформа для студентов",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#0e0e0f",
