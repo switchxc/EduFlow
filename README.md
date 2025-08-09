@@ -1,6 +1,7 @@
 # cysu - Образовательная платформа
 
 **learn & code** - ДЛЯ ВСЕХ ТЕХ КТО НЕ НАВИДИТ MOODLE
+<img width="1904" height="1080" alt="{0718D01C-29B2-4B5F-A42B-B1EDE550523A}" src="https://github.com/user-attachments/assets/6c772425-422a-4ef3-9529-62d181f960f8" />
 
 ## ⚡ Быстрая установка
 
