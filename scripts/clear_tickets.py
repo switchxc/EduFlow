@@ -13,11 +13,19 @@ import sys
 from pathlib import Path
 
 # Добавляем корневую директорию проекта в путь
-project_root = Path(__file__).parent
+project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from app import create_app, db
-from app.models import Ticket, TicketFile, TicketMessage
+# Проверяем, что модуль app существует
+try:
+    from app import create_app, db
+    from app.models import Ticket, TicketFile, TicketMessage
+except ImportError as e:
+    print(f"❌ Ошибка импорта: {e}")
+    print(f"📁 Текущая директория: {os.getcwd()}")
+    print(f"📁 Project root: {project_root}")
+    print(f"📁 Python path: {sys.path}")
+    sys.exit(1)
 
 
 def clear_all_tickets() -> None:

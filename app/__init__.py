@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, request, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_migrate import Migrate
@@ -93,6 +93,13 @@ def create_app():
     
     from .views import bp
     app.register_blueprint(bp)
+    
+    # Обработчик ошибки 404 на уровне приложения
+    @app.errorhandler(404)
+    def not_found(error):
+        """Обработчик ошибки 404 Not Found"""
+        app.logger.warning(f"404 ошибка: {request.url}")
+        return render_template("404.html"), 404
     
     # Настройка заголовков кеширования для статических файлов
     @app.after_request
