@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, TextAreaField, FileField, SelectField, BooleanField
-from wtforms.validators import DataRequired, Email, Length, EqualTo, ValidationError
+from wtforms.validators import DataRequired, Email, Length, EqualTo, URL
 from .models import User
 
 class LoginForm(FlaskForm):
@@ -99,3 +99,28 @@ class TicketForm(FlaskForm):
     ])
     files = FileField('Прикрепить файлы (до 5 МБ каждый)', render_kw={'multiple': True})
     submit = SubmitField('Отправить тикет') 
+
+
+class ShortenForm(FlaskForm):
+    """Форма сокращения ссылки"""
+    url = StringField('Ссылка', validators=[DataRequired(message='Введите ссылку'), URL(require_tld=True, message='Введите корректный URL с протоколом http(s)')])
+    ttl = SelectField(
+        'Срок действия',
+        choices=[
+            ('', 'Без ограничения времени'),
+            ('3h', '3 часа'),
+            ('6h', '6 часов'),
+        ],
+        default='',
+    )
+    max_clicks = SelectField(
+        'Лимит переходов',
+        choices=[
+            ('', 'Без лимита'),
+            ('1', '1 переход'),
+            ('3', '3 перехода'),
+            ('5', '5 переходов'),
+        ],
+        default='',
+    )
+    submit = SubmitField('Сократить')

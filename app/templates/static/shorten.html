@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block title %}Сокращение ссылки{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-7 col-lg-6">
+    <div class="card shadow-sm">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <h5 class="mb-0">Сокращение ссылки</h5>
+        <span class="text-muted small">hidden page</span>
+      </div>
+      <div class="card-body">
+        <form method="post" novalidate>
+          {{ form.csrf_token }}
+          <div class="mb-3">
+            <label class="form-label">URL</label>
+            {{ form.url(class='form-control', placeholder='https://example.com/very/long/link') }}
+            {% if form.url.errors %}
+              <div class="text-danger small mt-1">{{ form.url.errors[0] }}</div>
+            {% endif %}
+          </div>
+          <div class="row g-2">
+            <div class="col-md-6">
+              <label class="form-label">{{ form.ttl.label.text }}</label>
+              {{ form.ttl(class='form-select') }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">{{ form.max_clicks.label.text }}</label>
+              {{ form.max_clicks(class='form-select') }}
+            </div>
+          </div>
+          <div class="mt-3"></div>
+          <div class="d-grid">
+            {{ form.submit(class='btn btn-primary') }}
+          </div>
+        </form>
+        {% if short_url %}
+        <div class="alert alert-success mt-3 mb-0">
+          <div class="d-flex align-items-center justify-content-between">
+            <div>
+              <div class="fw-semibold">Короткая ссылка создана</div>
+              <a href="{{ short_url }}" target="_blank" rel="noopener nofollow" class="text-decoration-none">{{ short_url }}</a>
+            </div>
+            <button class="btn btn-sm btn-outline-light" type="button" onclick="navigator.clipboard.writeText('{{ short_url }}'); showSuccess('Ссылка скопирована', 1500);">Копировать</button>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    <p class="text-center text-muted mt-3 small">Страница не индексируется и доступна только по прямой ссылке</p>
+  </div>
+  <div class="col-12 mt-4">
+    <div class="text-center">
+      <a href="{{ url_for('main.index') }}" class="text-muted">На главную</a>
+    </div>
+  </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Убираем из истории, чтобы усложнить случайное попадание через back/forward
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState(null, document.title, window.location.pathname);
+      }
+    });
+  </script>
+</div>
+{% endblock %}
+

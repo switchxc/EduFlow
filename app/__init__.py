@@ -23,9 +23,16 @@ def create_app():
     # Конфигурация из переменных окружения
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default-secret-key-change-in-production')
     # Конфигурация базы данных - создаем в корне проекта
-    db_path = os.path.join(os.getcwd(), 'app.db')
+    db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'app.db')
     app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', f'sqlite:///{db_path}')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    
+    # Диагностика базы данных
+    if not app.debug and not app.testing:
+        app.logger.info(f'Database path: {db_path}')
+        app.logger.info(f'Database exists: {os.path.exists(db_path)}')
+        app.logger.info(f'Database readable: {os.access(db_path, os.R_OK)}')
+        app.logger.info(f'Database writable: {os.access(db_path, os.W_OK)}')
     
     # Конфигурация загрузки файлов
     app.config['UPLOAD_FOLDER'] = os.getenv('UPLOAD_FOLDER', 'app/static/uploads')
@@ -83,6 +90,26 @@ def create_app():
         app.logger.info('Приложение запущено')
     
     db.init_app(app)
+    
+    # Проверка подключения к базе данных
+    try:
+        with app.app_context():
+            db.engine.connect()
+            if not app.debug and not app.testing:
+                app.logger.info('Database connection successful')
+            # Обеспечиваем наличие таблиц (в том числе для ShortLink)
+            try:
+                db.create_all()
+                if not app.debug and not app.testing:
+                    app.logger.info('All tables ensured via create_all')
+            except Exception as e:
+                if not app.debug and not app.testing:
+                    app.logger.error(f'create_all failed: {e}')
+    except Exception as e:
+        if not app.debug and not app.testing:
+            app.logger.error(f'Database connection failed: {e}')
+        raise
+    
     migrate.init_app(app, db)
     login_manager.init_app(app)
     mail.init_app(app)
