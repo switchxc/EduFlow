@@ -1,3 +1,4 @@
+# cysu v1.5.0 - Модели базы данных
 from . import db
 from flask_login import UserMixin
 from datetime import datetime, timedelta
