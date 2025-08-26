@@ -1,0 +1,1728 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    {% if request.endpoint in ['main.shorten_page', 'main.resolve_shortlink', 'main.shortlink_expired', 'main.not_found'] %}
+    <meta name="robots" content="noindex,nofollow">
+    {% endif %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="cysu">
+    <meta name="theme-color" content="#0e0e0f">
+    <meta name="msapplication-TileColor" content="#0e0e0f">
+
+    <!-- Настройки кэширования: только SVG кэшируется -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
+    <!-- Фавиконы и PWA иконки -->
+            <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico', v=timestamp) }}">
+        <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='icons/favicon-32x32.png', v=timestamp) }}">
+        <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='icons/favicon-16x16.png', v=timestamp) }}">
+        <link rel="icon" type="image/png" sizes="48x48" href="{{ url_for('static', filename='icons/favicon-48x48.png', v=timestamp) }}">
+            <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='icons/apple-touch-icon.png', v=timestamp) }}">
+        <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest', v='3') }}">
+            <meta name="msapplication-TileImage" content="{{ url_for('static', filename='icons/android-chrome-192x192.png', v=timestamp) }}">
+    
+    <title>{% block title %}cysu - Code Your Skills Upgrade{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css', v=timestamp) }}" type="text/css">
+    {% block head %}{% endblock %}
+    <style>
+        /* Принудительное применение темной темы */
+        body {
+            background-color: #0e0e0f !important;
+            color: #ffffff !important;
+        }
+        
+        .navbar {
+            background-color: #0e0e0f !important;
+            border-bottom: 1px solid #2a2a2a !important;
+        }
+        
+        .card {
+            background-color: #1a1a1a !important;
+            border: 1px solid #3a3a3a;
+            color: #ffffff !important;
+            border-radius: 20px !important;
+        }
+        
+        .form-control, .form-select {
+            background-color: #0e0e0f !important;
+            border: 1px solid #3a3a3a !important;
+            color: #ffffff !important;
+            border-radius: 20px !important;
+        }
+        
+        footer {
+            background-color: #0e0e0f !important;
+            color: rgb(167, 170, 175) !important;
+            margin-top: auto !important;
+            padding: 1.5rem 0 1rem 0 !important;
+            position: relative !important;
+        }
+        
+        footer a {
+            color: rgb(167, 170, 175) !important;
+            text-decoration: none !important;
+            transition: color 0.3s ease !important;
+        }
+        
+        footer a:hover {
+            color: rgb(36, 193, 255) !important;
+            text-decoration: none !important;
+        }
+        
+        footer small {
+            text-decoration: none !important;
+        }
+        
+        /* Принудительное переопределение цвета текста */
+        .card *, .card-body *, .card-header * {
+            color: #ffffff !important;
+        }
+        
+        p, span, div, h1, h2, h3, h4, h5, h6, li, td, th {
+            color: #ffffff !important;
+        }
+        
+        /* Стили для модальных окон */
+        .modal-content {
+            background-color: #1a1a1a !important;
+            border: 1px solid #3a3a3a !important;
+            border-radius: 12px !important;
+        }
+        
+        .modal-header {
+            background-color: #1a1a1a !important;
+            border-bottom: 1px solid #3a3a3a !important;
+            padding: 12px 20px !important;
+        }
+        
+        .modal-body {
+            background-color: #1a1a1a !important;
+            padding: 16px 20px !important;
+        }
+        
+        .modal-footer {
+            background-color: #1a1a1a !important;
+            border-top: 1px solid #3a3a3a !important;
+            padding: 12px 20px !important;
+        }
+        
+        .modal-title {
+            color: #ffffff !important;
+            font-weight: 600 !important;
+            font-size: 1.1rem !important;
+            margin: 0 !important;
+        }
+        
+        .btn-close-white {
+            filter: invert(1) grayscale(100%) brightness(200%);
+        }
+        
+        /* Исправление z-index для модальных окон */
+        .modal {
+            z-index: 1050 !important;
+        }
+        
+        .modal-backdrop {
+            z-index: 1040 !important;
+        }
+        
+        /* Убеждаемся, что модальные окна поверх всех элементов */
+        .modal-dialog {
+            z-index: 1055 !important;
+        }
+        
+        /* Стили для всплывающих уведомлений */
+        .notification {
+            background: #1a1a1a;
+            border: 1px solid #3a3a3a;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            color: #ffffff;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+            pointer-events: auto;
+            max-width: 350px;
+            min-width: 280px;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.hide {
+            transform: translateX(100%);
+        }
+        
+        .notification.success {
+            border-left: 4px solid #28a745;
+        }
+        
+        .notification.error {
+            border-left: 4px solid #dc3545;
+        }
+        
+        .notification.warning {
+            border-left: 4px solid #ffc107;
+        }
+        
+        .notification.info {
+            border-left: 4px solid #17a2b8;
+        }
+        
+        .notification-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .notification-title {
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .notification-close {
+            background: none;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 0;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s ease;
+        }
+        
+        .notification-close:hover {
+            color: #ffffff;
+        }
+        
+        .notification-content {
+            font-size: 13px;
+            line-height: 1.4;
+        }
+        
+        .notification-timer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background: #28a745;
+            transition: width 0.1s linear;
+        }
+        
+        .notification.error .notification-timer {
+            background: #dc3545;
+        }
+        
+        .notification.warning .notification-timer {
+            background: #ffc107;
+        }
+        
+        .notification.info .notification-timer {
+            background: #17a2b8;
+        }
+        
+        /* Стиль для постоянных уведомлений */
+        .notification.persistent {
+            border-left: 4px solid #ff6b35;
+            background: #1a1a1a;
+            box-shadow: none;
+        }
+        
+        .notification.persistent .notification-title {
+            color: #ff6b35 !important;
+        }
+        
+        /* Специальный стиль для уведомления об авторизации */
+        .notification.auth-notification {
+            border-left: 4px solid #28a745;
+            background: #1a1a1a;
+            box-shadow: none;
+        }
+        
+        /* Стиль для уведомлений о ответах на тикеты */
+        .notification.answer {
+            border-left: 4px solid #28a745;
+        }
+        
+        .notification.answer .notification-timer {
+            background: #28a745;
+        }
+        
+        /* Стили для чата тикетов */
+        .chat-messages {
+            max-height: 500px;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        .message-bubble {
+            word-wrap: break-word;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        
+        .user-message .message-bubble {
+            background: linear-gradient(135deg, #007bff, #0056b3) !important;
+        }
+        
+        .admin-message .message-bubble {
+            background: linear-gradient(135deg, #28a745, #1e7e34) !important;
+        }
+        
+        .file-item {
+            transition: all 0.2s ease;
+        }
+        
+        .file-item:hover {
+            background-color: rgba(255,255,255,0.2) !important;
+        }
+        
+        .chat-input {
+            background-color: #1a1a1a;
+        }
+        
+        /* Скроллбар для чата */
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .chat-messages::-webkit-scrollbar-track {
+            background: #2a2a2a;
+            border-radius: 3px;
+        }
+        
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #3a3a3a;
+            border-radius: 3px;
+        }
+        
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: #4a4a4a;
+        }
+        
+        /* Стили для анимации печатающегося текста */
+        .typing-container {
+            min-width: 200px;
+            position: relative;
+        }
+        
+        #typing-text {
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+        
+
+        
+        /* Адаптивность для мобильных устройств */
+        @media (max-width: 768px) {
+            .typing-container {
+                min-width: 150px;
+            }
+            #typing-text {
+                font-size: 0.8rem;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .typing-container {
+                min-width: 120px;
+            }
+            #typing-text {
+                font-size: 0.7rem;
+            }
+        }
+        
+        .notification.auth-notification .notification-title {
+            color: #28a745;
+        }
+        
+        /* Стили для полей ввода в модальном окне */
+        .modal .form-control {
+            background-color: #0e0e0f !important;
+            border: 1px solid #3a3a3a !important;
+            color: #ffffff !important;
+            border-radius: 8px !important;
+            padding: 8px 12px !important;
+            font-size: 0.9rem !important;
+        }
+        
+        .modal .form-control:focus {
+            background-color: #0e0e0f !important;
+            border-color: #007bff !important;
+            color: #ffffff !important;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25) !important;
+        }
+        
+        .modal .form-label {
+            color: #ffffff !important;
+            font-weight: 500 !important;
+            font-size: 0.9rem !important;
+            margin-bottom: 6px !important;
+        }
+        
+        /* Уменьшаем отступы между полями */
+        .modal .mb-3 {
+            margin-bottom: 12px !important;
+        }
+        
+        /* Стили для кнопок в модальном окне */
+        .modal .btn-secondary {
+            background-color: #3a3a3a !important;
+            border: 1px solid #3a3a3a !important;
+            color: #ffffff !important;
+            border-radius: 8px !important;
+            padding: 8px 16px !important;
+            font-size: 0.9rem !important;
+        }
+        
+        .modal .btn-primary {
+            background-color: #007bff !important;
+            border: 1px solid #007bff !important;
+            color: #ffffff !important;
+            border-radius: 8px !important;
+            padding: 8px 16px !important;
+            font-size: 0.9rem !important;
+        }
+        
+        .modal .btn:hover {
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+        
+        /* Компактные стили для модального окна */
+        .modal-dialog {
+            max-width: 500px !important;
+        }
+        
+        /* Уменьшаем размеры для файловых полей */
+        .modal .form-control[type="file"] {
+            padding: 6px 12px !important;
+            font-size: 0.85rem !important;
+        }
+        
+        /* Компактные стили для select полей */
+        .modal .form-select {
+            background-color: #0e0e0f !important;
+            border: 1px solid #3a3a3a !important;
+            color: #ffffff !important;
+            border-radius: 8px !important;
+            padding: 8px 12px !important;
+            font-size: 0.9rem !important;
+        }
+        
+        /* Стили для карточек материалов */
+        .list-group-item {
+            background-color: #1a1a1a !important;
+            border-color: #3a3a3a !important;
+            color: #ffffff !important;
+            position: relative !important;
+            z-index: 1 !important;
+            margin-bottom: 0 !important;
+            border-radius: 0 !important;
+            border-left: none !important;
+            border-right: none !important;
+        }
+        
+        /* Hover эффекты для карточек тарифов */
+        .pricing-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .pricing-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            border-color: #3a3a3a !important;
+        }
+        
+        /* Hover эффект для кнопки тарифов */
+        .btn-tariffs:hover {
+            background: #007bff !important;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 123, 255, 0.3);
+        }
+        
+        .list-group-item:hover {
+            background-color: #2a2a2a !important;
+            z-index: 2 !important;
+        }
+        
+        /* Первый элемент - без закруглений сверху */
+        .list-group-item:first-child {
+            border-top-left-radius: 0 !important;
+            border-top-right-radius: 0 !important;
+        }
+        
+        /* Последний элемент - закругление только снизу */
+        .list-group-item:last-child {
+            border-bottom-left-radius: 8px !important;
+            border-bottom-right-radius: 8px !important;
+            border-bottom: 1px solid #3a3a3a !important;
+        }
+        
+        /* Средние элементы - без закруглений */
+        .list-group-item:not(:first-child):not(:last-child) {
+            border-radius: 0 !important;
+        }
+        
+        /* Стили для контейнера карточек */
+        .list-group {
+            background-color: transparent !important;
+            border: none !important;
+            border-radius: 0 !important;
+            overflow: visible !important;
+        }
+        
+        /* Стили для карточек */
+        .card {
+            border: none;
+            overflow: visible !important;
+            box-shadow: none !important;
+        }
+        
+        .card-header {
+            background-color: #2a2a2a !important;
+            border-bottom: 1px solid #3a3a3a !important;
+            color: #ffffff !important;
+            border-radius: 8px 8px 0 0 !important;
+        }
+        
+        /* Убираем закругления снизу у заголовка, если есть элементы списка */
+        .card-header + .card-body .list-group-item:first-child {
+            border-top-left-radius: 0 !important;
+            border-top-right-radius: 0 !important;
+        }
+        
+        /* Дополнительные стили для предотвращения просвечивания */
+        .list-group-item {
+            box-shadow: none !important;
+            backdrop-filter: none !important;
+        }
+        
+        .list-group-item:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+        }
+        
+        /* Обеспечиваем полную непрозрачность */
+        .list-group-item {
+            background-color: #1a1a1a !important;
+            background-image: none !important;
+            background-blend-mode: normal !important;
+        }
+        
+        .card-header {
+            background-color: #2a2a2a !important;
+            background-image: none !important;
+            background-blend-mode: normal !important;
+        }
+        
+        .card-body {
+            background-color: transparent !important;
+            background-image: none !important;
+            background-blend-mode: normal !important;
+        }
+        
+        /* Исправляем проблему с синим текстом при наведении */
+        .list-group-item a {
+            color: #ffffff !important;
+            text-decoration: none !important;
+        }
+        
+        .list-group-item a:hover {
+            color: #ffffff !important;
+            text-decoration: none !important;
+        }
+        
+        /* Стили для кнопок в карточках */
+        .btn-sm {
+            font-size: 0.8rem !important;
+            padding: 4px 8px !important;
+            border-radius: 6px !important;
+        }
+        
+        .btn-outline-primary {
+            color: #007bff !important;
+            border-color: #007bff !important;
+        }
+        
+        .btn-outline-primary:hover {
+            background-color: #007bff !important;
+            color: #ffffff !important;
+        }
+        
+        .btn-outline-danger {
+            color: #dc3545 !important;
+            border-color: #dc3545 !important;
+        }
+        
+        .btn-outline-danger:hover {
+            background-color: #dc3545 !important;
+            color: #ffffff !important;
+        }
+        
+        .btn-success {
+            background-color: #28a745 !important;
+            border-color: #28a745 !important;
+            color: #ffffff !important;
+        }
+        
+        .btn-success:hover {
+            background-color: #218838 !important;
+            border-color: #1e7e34 !important;
+            color: #ffffff !important;
+        }
+        
+        .btn-primary {
+            background-color: #007bff !important;
+            border-color: #007bff !important;
+            color: #ffffff !important;
+        }
+        
+        .btn-primary:hover {
+            background-color: #0056b3 !important;
+            border-color: #0056b3 !important;
+            color: #ffffff !important;
+        }
+        
+        /* Дополнительные стили для мобильных устройств */
+        .mobile-device .navbar-nav .nav-link {
+            padding: 1rem !important;
+            border-bottom: 1px solid var(--dark-border);
+            font-size: 1rem;
+        }
+        
+        .mobile-device .navbar-nav .nav-link:last-child {
+            border-bottom: none;
+        }
+        
+        .mobile-device .card {
+            margin-bottom: 1rem;
+        }
+        
+        .mobile-device .btn {
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .mobile-device .form-control,
+        .mobile-device .form-select {
+            min-height: 44px;
+            font-size: 16px;
+        }
+        
+        .mobile-device .modal-dialog {
+            margin: 1rem;
+            max-width: calc(100% - 2rem);
+        }
+        
+
+        
+        /* Стили для iOS */
+        .ios-device .form-control,
+        .ios-device .form-select {
+            -webkit-appearance: none;
+            border-radius: 8px;
+        }
+        
+        .ios-device .btn {
+            -webkit-appearance: none;
+            border-radius: 8px;
+        }
+        
+
+        
+        /* Стили для Android */
+        .android-device .form-control,
+        .android-device .form-select {
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        
+        .android-device .btn {
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        
+        /* Стили для touch-устройств */
+        .touch-device .btn:hover {
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .touch-device .card:hover {
+            transform: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .touch-device .btn:focus,
+        .touch-device .form-control:focus,
+        .touch-device .nav-link:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px var(--accent-blue);
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark mb-2">
+    <div class="container">
+        <div class="navbar-brand d-flex align-items-center">
+            <a href="{{ url_for('main.index') }}" class="text-decoration-none text-white fw-bold me-1">cysu</a>
+            <span class="text-primary fw-bold">•</span>
+            <div class="typing-container ms-2 d-flex align-items-center">
+                <span id="typing-text" class="text-muted fw-normal"></span>
+            </div>
+        </div>
+        
+        <!-- Кнопка мобильного меню -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                {% if current_user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.profile') }}">
+                            <i class="fas fa-user d-lg-none me-2"></i>Профиль
+                        </a>
+                    </li>
+                    {% if not is_subscribed %}
+                        <li class="nav-item">
+                            <a class="nav-link text-warning" href="{{ url_for('main.subscription') }}">
+                                <i class="fas fa-crown d-lg-none me-2"></i>Подписка
+                            </a>
+                        </li>
+                    {% endif %}
+                    {% if current_user.is_admin %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('main.tickets') }}">
+                                <i class="fas fa-ticket-alt d-lg-none me-2"></i>Тикеты
+                            </a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-cog d-lg-none me-2"></i>Админка
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="adminDropdown" style="background: #1a1a1a; border: 1px solid #3a3a3a;">
+                                <li><a class="dropdown-item" href="{{ url_for('main.admin_users') }}">
+                                    <i class="fas fa-users me-2"></i>Пользователи
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('main.admin_groups') }}">
+                                    <i class="fas fa-layer-group me-2"></i>Группы
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('main.admin_subject_groups') }}">
+                                    <i class="fas fa-link me-2"></i>Предметы по группам
+                                </a></li>
+                            </ul>
+                        </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.logout') }}">
+                            <i class="fas fa-sign-out-alt d-lg-none me-2"></i>Выйти
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.login') }}">
+                            <i class="fas fa-sign-in-alt d-lg-none me-2"></i>Войти
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.register') }}">
+                            <i class="fas fa-user-plus d-lg-none me-2"></i>Регистрация
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>
+<div class="container flex-grow-1 py-4" style="min-height: calc(100vh - 140px);">
+    {% block content %}{% endblock %}
+</div>
+
+<!-- Контейнер для всплывающих уведомлений -->
+<div id="notifications-container" style="position: fixed; top: 80px; right: 20px; z-index: 9999; pointer-events: none;"></div>
+
+<!-- Футер -->
+<footer class="footer" style="margin-top: auto;">
+    <div class="container">
+        <!-- Верхняя секция с логотипом и соцсетями -->
+        <div class="row align-items-center mb-3" style="border-bottom: 1px solid #3a3a3a; padding-bottom: 1rem;">
+            <div class="col-md-6 col-6 mb-3 mb-md-0">
+                <div class="d-flex align-items-center justify-content-center justify-content-md-start">
+                    <div class="bg-primary rounded me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                        <i class="fas fa-graduation-cap text-white"></i>
+                    </div>
+                    <span class="text-white fw-bold fs-5">cysu</span>
+                </div>
+            </div>
+            <div class="col-md-6 col-6">
+                <div class="d-flex justify-content-center justify-content-md-end gap-2">
+                    {% if current_user.is_authenticated %}
+                        <button type="button" class="btn btn-outline-primary rounded d-flex align-items-center justify-content-center text-decoration-none" style="width: 95px; height: 32px; border-color: #007bff; color: #007bff; font-size: 14px; font-weight: 500;" onclick="openTicketModal()" title="Создать тикет">
+                            <i class="fas fa-ticket-alt me-1"></i>
+                            <span>Тикет</span>
+                        </button>
+                    {% endif %}
+                    <a href="https://vk.com/qsource" target="_blank" class="bg-primary rounded d-flex align-items-center justify-content-center text-white text-decoration-none" style="width: 32px; height: 32px;">
+                        <i class="fab fa-vk"></i>
+                    </a>
+                    <a href="https://t.me/cy7su" target="_blank" class="bg-info rounded d-flex align-items-center justify-content-center text-white text-decoration-none" style="width: 32px; height: 32px;">
+                        <i class="fab fa-telegram-plane"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Основная секция с разделами -->
+        <div class="row mb-3">
+            <div class="col-md-6 col-6 mb-3 mb-md-0">
+                <h6 class="text-white mb-2 text-center text-md-start">КОНТАКТЫ</h6>
+                <div class="d-flex flex-column flex-md-row align-items-center align-items-md-start gap-2 gap-md-3 text-center text-md-start">
+                    <a href="mailto:support@cysu.ru" class="text-muted text-decoration-none">support@cysu.ru</a>
+                    <span class="text-muted d-none d-md-inline">|</span>
+                    <a href="https://t.me/cy7su" target="_blank" class="text-muted text-decoration-none">Поддержка в Telegram</a>
+                </div>
+            </div>
+            <div class="col-md-6 col-6">
+                <h6 class="text-white mb-2 text-center text-md-end">ИНФОРМАЦИЯ</h6>
+                <div class="d-flex justify-content-center justify-content-md-end">
+                    <a href="{{ url_for('main.wiki') }}" class="text-muted text-decoration-none">База знаний</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Нижняя секция с копирайтом -->
+        <div class="row" style="border-top: 1px solid #3a3a3a; padding-top: 1rem;">
+            <div class="col-md-6 col-6 mb-2 mb-md-0">
+                <small class="text-muted text-center text-md-start d-block">
+                    cysu, 2025 | Вагнер Никита Максимович | ИНН: 645126224659 | <a href="https://cysu.ru" class="text-muted text-decoration-none">cysu.ru</a> | Все права защищены.
+                </small>
+            </div>
+            <div class="col-md-6 col-6">
+                <small class="text-muted text-center text-md-end d-block">
+                    <a href="{{ url_for('main.privacy') }}" class="text-muted text-decoration-none">Политика конфиденциальности</a> | <a href="{{ url_for('main.terms') }}" class="text-muted text-decoration-none">Условия предоставления услуг</a>
+                </small>
+            </div>
+        </div>
+    </div>
+</footer>
+
+{% if current_user.is_authenticated and current_user.is_admin %}
+<!-- Модальное окно админки -->
+{% endif %}
+
+
+
+
+
+
+
+
+    <script>
+// Принудительное обновление иконок при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    // Обновляем все иконки с новым параметром версии
+    const icons = document.querySelectorAll('link[rel*="icon"], link[rel="apple-touch-icon"]');
+    icons.forEach(function(icon) {
+        const href = icon.getAttribute('href');
+        if (href && !href.includes('v=')) {
+            icon.setAttribute('href', href + (href.includes('?') ? '&' : '?') + 'v=' + Date.now());
+        }
+    });
+    
+    // Простая анимация текста
+    function initTypingAnimation() {
+        const typingText = document.getElementById('typing-text');
+        if (!typingText) return;
+        
+        const texts = ['can you shut up?', 't.me/cy7su'];
+        const savedState = localStorage.getItem('typingState');
+        
+        if (savedState) {
+            const state = JSON.parse(savedState);
+            if (state.completed) {
+                typingText.textContent = texts[1];
+                return;
+            }
+        }
+        
+        let textIndex = 0;
+        let charIndex = 0;
+        let isDeleting = false;
+        
+        function animate() {
+            const currentText = texts[textIndex];
+            
+            if (isDeleting) {
+                typingText.textContent = currentText.substring(0, charIndex--);
+                if (charIndex < 0) {
+                    isDeleting = false;
+                    textIndex++;
+                    if (textIndex >= texts.length) {
+                        localStorage.setItem('typingState', JSON.stringify({completed: true}));
+                        return;
+                    }
+                }
+            } else {
+                typingText.textContent = currentText.substring(0, charIndex++);
+                if (charIndex > currentText.length) {
+                    isDeleting = true;
+                    setTimeout(animate, 2000);
+                    return;
+                }
+            }
+            
+            setTimeout(animate, isDeleting ? 50 : 100);
+        }
+        
+        setTimeout(animate, 1000);
+    }
+    
+    initTypingAnimation();
+    document.addEventListener('DOMContentLoaded', initTypingAnimation);
+});
+</script>
+
+
+
+<!-- Мобильные улучшения -->
+<script>
+// Предотвращение зума на iOS при фокусе на input
+document.addEventListener('DOMContentLoaded', function() {
+    const inputs = document.querySelectorAll('input[type="text"], input[type="email"], input[type="password"], textarea');
+    inputs.forEach(input => {
+        input.addEventListener('focus', function() {
+            // Устанавливаем font-size 16px для предотвращения зума на iOS
+            this.style.fontSize = '16px';
+        });
+        
+        input.addEventListener('blur', function() {
+            // Возвращаем исходный размер шрифта
+            this.style.fontSize = '';
+        });
+    });
+    
+    // Улучшение для мобильного меню
+    const navbarToggler = document.querySelector('.navbar-toggler');
+    const navbarCollapse = document.querySelector('.navbar-collapse');
+    
+    if (navbarToggler && navbarCollapse) {
+        // Закрываем меню при клике на ссылку
+        const navLinks = navbarCollapse.querySelectorAll('.nav-link');
+        navLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth < 992) {
+                    const bsCollapse = new bootstrap.Collapse(navbarCollapse, {
+                        toggle: false
+                    });
+                    bsCollapse.hide();
+                }
+            });
+        });
+    }
+    
+    // Улучшение для модальных окон на мобильных
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(modal => {
+        modal.addEventListener('shown.bs.modal', function() {
+            // Предотвращаем скролл body на мобильных
+            document.body.style.overflow = 'hidden';
+        });
+        
+        modal.addEventListener('hidden.bs.modal', function() {
+            // Восстанавливаем скролл
+            document.body.style.overflow = '';
+        });
+    });
+    
+
+    
+
+    
+    // Улучшение для уведомлений на мобильных
+    const notificationsContainer = document.getElementById('notifications-container');
+    if (notificationsContainer && window.innerWidth <= 768) {
+        notificationsContainer.style.top = '70px';
+        notificationsContainer.style.right = '10px';
+        notificationsContainer.style.left = 'auto';
+        notificationsContainer.style.maxWidth = 'none';
+    }
+});
+
+// Функция для определения мобильного устройства
+function isMobile() {
+    return window.innerWidth <= 768;
+}
+
+// Функция для определения iOS
+function isIOS() {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+}
+
+// Функция для определения Android
+function isAndroid() {
+    return /Android/.test(navigator.userAgent);
+}
+
+// Добавляем классы к body для специфичных стилей
+document.addEventListener('DOMContentLoaded', function() {
+    if (isMobile()) {
+        document.body.classList.add('mobile-device');
+    }
+    if (isIOS()) {
+        document.body.classList.add('ios-device');
+    }
+    if (isAndroid()) {
+        document.body.classList.add('android-device');
+    }
+    if (!window.matchMedia('(hover: hover)').matches) {
+        document.body.classList.add('touch-device');
+    }
+});
+</script>
+
+<!-- Система всплывающих уведомлений -->
+<script>
+// Класс для управления уведомлениями
+class NotificationManager {
+    constructor() {
+        this.container = document.getElementById('notifications-container');
+        this.notifications = new Map();
+        this.counter = 0;
+    }
+    
+    /**
+     * Показывает уведомление
+     * @param {string} message - Текст сообщения
+     * @param {string} type - Тип уведомления (success, error, warning, info)
+     * @param {number} duration - Длительность показа в миллисекундах (по умолчанию 8000)
+     */
+    show(message, type = 'info', duration = 8000) {
+        const id = `notification-${++this.counter}`;
+        const notification = this.createNotification(id, message, type);
+        
+        this.container.appendChild(notification);
+        this.notifications.set(id, {
+            element: notification,
+            timer: null,
+            progressTimer: null,
+            startTime: Date.now(),
+            duration: duration,
+            isPaused: false
+        });
+        
+        // Анимация появления
+        setTimeout(() => {
+            notification.classList.add('show');
+        }, 10);
+        
+        // Запускаем таймер
+        this.startTimer(id);
+        
+        return id;
+    }
+    
+    /**
+     * Создает элемент уведомления
+     */
+    createNotification(id, message, type) {
+        const notification = document.createElement('div');
+        notification.id = id;
+        notification.className = `notification ${type}`;
+        
+        const title = this.getTitleByType(type);
+        
+        notification.innerHTML = `
+            <div class="notification-header">
+                <div class="notification-title">${title}</div>
+                <button class="notification-close" onclick="notificationManager.close('${id}')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="notification-content">${message}</div>
+            <div class="notification-timer"></div>
+        `;
+        
+        // Обработчики для приостановки таймера при наведении
+        notification.addEventListener('mouseenter', () => this.pauseTimer(id));
+        notification.addEventListener('mouseleave', () => this.resumeTimer(id));
+        
+        return notification;
+    }
+    
+    /**
+     * Получает заголовок по типу уведомления
+     */
+            getTitleByType(type) {
+            const titles = {
+                'success': 'Успешно',
+                'error': 'Ошибка',
+                'warning': 'Предупреждение',
+                'info': 'Информация',
+                'persistent': 'Важно',
+                'auth-notification': 'Важно',
+                'answer': 'Ответ'
+            };
+            return titles[type] || 'Уведомление';
+        }
+    
+    /**
+     * Запускает таймер уведомления
+     */
+            startTimer(id) {
+            const notification = this.notifications.get(id);
+            if (!notification) return;
+            
+            const { element, duration } = notification;
+            const timerElement = element.querySelector('.notification-timer');
+            
+            notification.startTime = Date.now();
+            notification.isPaused = false;
+            
+            // Если duration = 0, уведомление показывается бесконечно
+            if (duration > 0) {
+                // Таймер для скрытия
+                notification.timer = setTimeout(() => {
+                    this.close(id);
+                }, duration);
+                
+                // Таймер для прогресс-бара
+                this.updateProgress(id);
+            } else {
+                // Для бесконечных уведомлений скрываем прогресс-бар
+                timerElement.style.display = 'none';
+            }
+        }
+    
+    /**
+     * Обновляет прогресс-бар
+     */
+            updateProgress(id) {
+            const notification = this.notifications.get(id);
+            if (!notification || notification.isPaused) return;
+            
+            const { element, startTime, duration } = notification;
+            const timerElement = element.querySelector('.notification-timer');
+            
+            // Для бесконечных уведомлений не обновляем прогресс
+            if (duration === 0) return;
+            
+            const elapsed = Date.now() - startTime;
+            const progress = Math.max(0, 100 - (elapsed / duration) * 100);
+            
+            timerElement.style.width = `${progress}%`;
+            
+            if (progress > 0) {
+                notification.progressTimer = setTimeout(() => {
+                    this.updateProgress(id);
+                }, 50);
+            }
+        }
+    
+    /**
+     * Приостанавливает таймер
+     */
+            pauseTimer(id) {
+            const notification = this.notifications.get(id);
+            if (!notification || notification.isPaused) return;
+            
+            // Для бесконечных уведомлений не приостанавливаем таймер
+            if (notification.duration === 0) return;
+            
+            notification.isPaused = true;
+            notification.pauseTime = Date.now();
+            
+            if (notification.timer) {
+                clearTimeout(notification.timer);
+            }
+            if (notification.progressTimer) {
+                clearTimeout(notification.progressTimer);
+            }
+        }
+    
+    /**
+     * Возобновляет таймер
+     */
+            resumeTimer(id) {
+            const notification = this.notifications.get(id);
+            if (!notification || !notification.isPaused) return;
+            
+            const pauseDuration = Date.now() - notification.pauseTime;
+            notification.startTime += pauseDuration;
+            notification.isPaused = false;
+            
+            // Для бесконечных уведомлений (duration = 0) ничего не делаем
+            if (notification.duration === 0) return;
+            
+            const remainingTime = notification.duration - (Date.now() - notification.startTime);
+            
+            if (remainingTime > 0) {
+                notification.timer = setTimeout(() => {
+                    this.close(id);
+                }, remainingTime);
+                
+                this.updateProgress(id);
+            } else {
+                this.close(id);
+            }
+        }
+    
+    /**
+     * Закрывает уведомление
+     */
+    close(id) {
+        const notification = this.notifications.get(id);
+        if (!notification) return;
+        
+        const { element, timer, progressTimer } = notification;
+        
+        // Очищаем таймеры
+        if (timer) clearTimeout(timer);
+        if (progressTimer) clearTimeout(progressTimer);
+        
+        // Анимация скрытия
+        element.classList.add('hide');
+        
+        setTimeout(() => {
+            if (element.parentNode) {
+                element.parentNode.removeChild(element);
+            }
+            this.notifications.delete(id);
+        }, 300);
+    }
+    
+    /**
+     * Закрывает все уведомления
+     */
+    closeAll() {
+        for (const [id] of this.notifications) {
+            this.close(id);
+        }
+    }
+}
+
+// Создаем глобальный экземпляр менеджера уведомлений
+const notificationManager = new NotificationManager();
+
+// Обработка flash сообщений от Flask
+document.addEventListener('DOMContentLoaded', function() {
+    // Получаем flash сообщения из Flask
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                {% set type = 'info' %}
+                {% if category == 'error' %}
+                    {% set type = 'error' %}
+                {% elif category == 'success' %}
+                    {% set type = 'success' %}
+                {% elif category == 'warning' %}
+                    {% set type = 'warning' %}
+                {% endif %}
+                notificationManager.show('{{ message }}', '{{ type }}', 8000);
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+});
+
+// Глобальная функция для показа уведомлений (можно вызывать из других скриптов)
+function showNotification(message, type = 'info', duration = 8000) {
+    return notificationManager.show(message, type, duration);
+}
+
+// Функции для удобного вызова разных типов уведомлений
+function showSuccess(message, duration = 8000) {
+    return notificationManager.show(message, 'success', duration);
+}
+
+function showError(message, duration = 8000) {
+    return notificationManager.show(message, 'error', duration);
+}
+
+function showWarning(message, duration = 8000) {
+    return notificationManager.show(message, 'warning', duration);
+}
+
+function showInfo(message, duration = 8000) {
+    return notificationManager.show(message, 'info', duration);
+}
+
+// Глобальная обработка ошибок AJAX
+document.addEventListener('DOMContentLoaded', function() {
+    // Перехватываем ошибки fetch запросов
+    const originalFetch = window.fetch;
+    window.fetch = function(...args) {
+        return originalFetch.apply(this, args)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response;
+            })
+            .catch(error => {
+                showError(`Ошибка сети: ${error.message}`, 8000);
+                throw error;
+            });
+    };
+    
+    // Перехватываем ошибки XMLHttpRequest
+    const originalXHROpen = XMLHttpRequest.prototype.open;
+    XMLHttpRequest.prototype.open = function(...args) {
+        this.addEventListener('error', function() {
+            showError('Ошибка при выполнении запроса', 5000);
+        });
+        this.addEventListener('timeout', function() {
+            showError('Превышено время ожидания запроса', 5000);
+        });
+        return originalXHROpen.apply(this, args);
+    };
+    
+    // Постоянные уведомления для пользователей
+    {% if not current_user.is_authenticated %}
+        // Для неавторизованных пользователей только на главной странице
+        {% if request.endpoint == 'main.index' %}
+            notificationManager.show('Важно! Для просмотра материалов необходимо авторизоваться', 'auth-notification', 17000); // 17 секунд
+        {% endif %}
+    {% elif not is_subscribed %}
+        // Для авторизованных пользователей без подписки (только на главной странице)
+        {% if request.endpoint == 'main.index' %}
+            notificationManager.show('Важно! Для доступа к предметам необходима активная подписка. <a href="{{ url_for("main.subscription") }}" style="color: #ff6b35 !important; text-decoration: none; font-weight: bold;">Оформить подписку</a>', 'persistent', 0); // 0 = бесконечно
+        {% endif %}
+    {% endif %}
+});
+
+// ==================== СИСТЕМА ТИКЕТОВ ====================
+
+// Функция для открытия модального окна создания тикета
+function openTicketModal() {
+    const modal = new bootstrap.Modal(document.getElementById('ticketModal'));
+    modal.show();
+}
+
+// Функция для создания тикета
+function createTicket() {
+    const form = document.getElementById('ticketForm');
+    const formData = new FormData(form);
+    
+    // Показываем индикатор загрузки
+    const submitBtn = document.getElementById('ticketSubmitBtn');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Отправка...';
+    submitBtn.disabled = true;
+    
+    fetch('/api/create_ticket', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': document.querySelector('input[name="csrf_token"]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showSuccess(data.message);
+            // Закрываем модальное окно
+            const modal = bootstrap.Modal.getInstance(document.getElementById('ticketModal'));
+            modal.hide();
+            // Очищаем форму
+            form.reset();
+            // Очищаем список файлов
+            document.getElementById('fileList').innerHTML = '';
+        } else {
+            showError(data.error || 'Ошибка создания тикета');
+        }
+    })
+    .catch(error => {
+        if (error.message.includes('413')) {
+            showError('Файл слишком большой. Максимальный размер: 10 МБ на файл');
+        } else {
+            showError('Ошибка сети при создании тикета');
+        }
+        console.error('Error:', error);
+    })
+    .finally(() => {
+        // Восстанавливаем кнопку
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    });
+}
+
+// Функция для отображения выбранных файлов
+function updateFileList() {
+    const fileInput = document.getElementById('ticketFiles');
+    const fileList = document.getElementById('fileList');
+    fileList.innerHTML = '';
+    
+    for (let i = 0; i < fileInput.files.length; i++) {
+        const file = fileInput.files[i];
+        const fileSize = (file.size / (1024 * 1024)).toFixed(2); // Размер в МБ
+        
+        const fileItem = document.createElement('div');
+        fileItem.className = 'd-flex align-items-center justify-content-between p-2 mb-1 rounded';
+        fileItem.style.cssText = 'background-color: #2a2a2a; border: 1px solid #3a3a3a;';
+        
+        fileItem.innerHTML = `
+            <div class="d-flex align-items-center">
+                <i class="fas fa-file me-2 text-primary"></i>
+                <span class="text-white">${file.name}</span>
+            </div>
+            <span class="text-muted small">${fileSize} МБ</span>
+        `;
+        
+        fileList.appendChild(fileItem);
+    }
+}
+
+// Инициализация при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    // Обработчик изменения файлов в форме тикета
+    const fileInput = document.getElementById('ticketFiles');
+    if (fileInput) {
+        fileInput.addEventListener('change', updateFileList);
+    }
+    
+    // Обработчик изменения файлов в форме ответа пользователя
+    const userResponseFileInput = document.getElementById('userResponseFiles');
+    if (userResponseFileInput) {
+        userResponseFileInput.addEventListener('change', updateUserResponseFileList);
+    }
+    
+    // Загружаем уведомления для авторизованных пользователей
+    {% if current_user.is_authenticated %}
+        loadNotifications();
+        // Проверяем уведомления каждые 30 секунд
+        setInterval(loadNotifications, 30000);
+    {% endif %}
+});
+
+// Функция для отправки ответа пользователя на тикет
+function sendUserResponse() {
+    const form = document.getElementById('userResponseForm');
+    const formData = new FormData(form);
+    
+    // Показываем индикатор загрузки
+    const submitBtn = document.getElementById('userResponseSubmitBtn');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Отправка...';
+    submitBtn.disabled = true;
+    
+    fetch('/api/ticket/user_response', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': document.querySelector('input[name="csrf_token"]').value
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            if (response.status === 413) {
+                throw new Error('413');
+            }
+            throw new Error(`HTTP ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            showSuccess('Ответ отправлен!');
+            // Очищаем форму
+            form.reset();
+            document.getElementById('userResponseFileList').innerHTML = '';
+            // Перезагружаем страницу для отображения нового ответа
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        } else {
+            showError(data.error || 'Ошибка отправки ответа');
+        }
+    })
+    .catch(error => {
+        if (error.message.includes('413')) {
+            showError('Файл слишком большой. Максимальный размер: 10 МБ на файл');
+        } else {
+            showError('Ошибка сети при отправке ответа');
+        }
+        console.error('Error:', error);
+    })
+    .finally(() => {
+        // Восстанавливаем кнопку
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    });
+}
+
+// Функция для прокрутки чата вниз
+function scrollChatToBottom() {
+    const chatMessages = document.getElementById('chatMessages');
+    if (chatMessages) {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+}
+
+// Прокручиваем чат вниз при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    scrollChatToBottom();
+});
+
+// Функция для отображения списка выбранных файлов в ответе пользователя
+function updateUserResponseFileList() {
+    const fileInput = document.getElementById('userResponseFiles');
+    const fileList = document.getElementById('userResponseFileList');
+    const files = fileInput.files;
+    
+    fileList.innerHTML = '';
+    
+    if (files.length > 0) {
+        const list = document.createElement('ul');
+        list.className = 'list-unstyled mb-0';
+        
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const listItem = document.createElement('li');
+            listItem.className = 'text-white-50 small';
+            listItem.innerHTML = `<i class="fas fa-file me-1"></i>${file.name} (${(file.size / 1024 / 1024).toFixed(2)} МБ)`;
+            list.appendChild(listItem);
+        }
+        
+        fileList.appendChild(list);
+    }
+}
+
+// Функция для загрузки уведомлений
+function loadNotifications() {
+    fetch('/api/notifications')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.notifications.length > 0) {
+                // Показываем все непрочитанные уведомления через NotificationManager
+                data.notifications.forEach(notification => {
+                    showTicketNotification(notification);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Ошибка загрузки уведомлений:', error);
+        });
+}
+
+// Функция для показа уведомления о тикете через NotificationManager
+function showTicketNotification(notification) {
+    // Проверяем, не было ли уже показано это уведомление
+    const dismissedNotifications = JSON.parse(localStorage.getItem('dismissedTicketNotifications') || '[]');
+    if (dismissedNotifications.includes(notification.id)) {
+        return;
+    }
+    
+    // Создаем HTML для уведомления с кнопкой
+    const notificationHtml = `
+        <div class="d-flex align-items-center justify-content-between">
+            <div class="flex-grow-1">
+                <div class="mb-2">
+                    Администратор ответил на ваш тикет
+                </div>
+                <div class="d-flex align-items-center">
+                    <button type="button" class="btn btn-sm btn-outline-success" onclick="goToTicket('${notification.link}', ${notification.id})" style="font-size: 0.75rem; padding: 2px 8px;">
+                        Перейти
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Показываем уведомление через NotificationManager (7 минут = 420000 мс)
+    const notificationId = notificationManager.show(notificationHtml, 'answer', 420000);
+    
+    // Сохраняем информацию о уведомлении для последующего закрытия
+    if (!window.ticketNotifications) {
+        window.ticketNotifications = new Map();
+    }
+    window.ticketNotifications.set(notificationId, {
+        originalId: notification.id,
+        link: notification.link
+    });
+    
+    // Добавляем обработчик закрытия
+    setTimeout(() => {
+        const notificationElement = document.getElementById(notificationId);
+        if (notificationElement) {
+            const closeButton = notificationElement.querySelector('.notification-close');
+            if (closeButton) {
+                closeButton.onclick = function() {
+                    markTicketNotificationRead(notification.id, notificationId);
+                };
+            }
+        }
+    }, 100);
+}
+
+// Функция для перехода к тикету
+function goToTicket(link, notificationId) {
+    // Отмечаем уведомление как прочитанное
+    const dismissedNotifications = JSON.parse(localStorage.getItem('dismissedTicketNotifications') || '[]');
+    if (!dismissedNotifications.includes(notificationId)) {
+        dismissedNotifications.push(notificationId);
+        localStorage.setItem('dismissedTicketNotifications', JSON.stringify(dismissedNotifications));
+    }
+    
+    // Переходим к тикету
+    window.location.href = link;
+}
+
+// Функция для отметки уведомления о тикете как прочитанного
+function markTicketNotificationRead(notificationId, managerNotificationId) {
+    // Сохраняем ID уведомления в localStorage как закрытое
+    const dismissedNotifications = JSON.parse(localStorage.getItem('dismissedTicketNotifications') || '[]');
+    if (!dismissedNotifications.includes(notificationId)) {
+        dismissedNotifications.push(notificationId);
+        localStorage.setItem('dismissedTicketNotifications', JSON.stringify(dismissedNotifications));
+    }
+    
+    // Закрываем уведомление через NotificationManager
+    if (notificationManager) {
+        notificationManager.close(managerNotificationId);
+    }
+    
+    // Отправляем запрос на сервер
+    fetch(`/api/notifications/${notificationId}/read`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('input[name="csrf_token"]').value
+        }
+    })
+    .catch(error => {
+        console.error('Ошибка отметки уведомления как прочитанного:', error);
+    });
+}
+</script>
+
+<!-- Bootstrap и улучшения для dropdown меню -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// Инициализация dropdown меню админки
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM загружен, инициализируем dropdown меню...');
+    
+    // Ждем загрузки Bootstrap
+    let attempts = 0;
+    const maxAttempts = 50; // 5 секунд максимум
+    
+    function initDropdown() {
+        if (typeof bootstrap !== 'undefined') {
+            console.log('Bootstrap загружен, инициализируем dropdown...');
+            
+            const adminDropdown = document.getElementById('adminDropdown');
+            console.log('adminDropdown элемент:', adminDropdown);
+            
+            if (adminDropdown) {
+                try {
+                    // Инициализация Bootstrap dropdown
+                    const dropdown = new bootstrap.Dropdown(adminDropdown, {
+                        autoClose: true,
+                        boundary: 'viewport'
+                    });
+                    
+                    console.log('Dropdown админки успешно инициализирован');
+                    
+                    // Добавляем дополнительную обработку для отладки
+                    adminDropdown.addEventListener('click', function(e) {
+                        console.log('Клик по adminDropdown');
+                    });
+                    
+                    // Проверяем, что dropdown работает
+                    const dropdownMenu = adminDropdown.nextElementSibling;
+                    if (dropdownMenu) {
+                        console.log('Dropdown меню найдено:', dropdownMenu);
+                        console.log('Классы dropdown меню:', dropdownMenu.className);
+                    }
+                    
+                } catch (error) {
+                    console.error('Ошибка инициализации dropdown админки:', error);
+                }
+            } else {
+                console.warn('adminDropdown элемент не найден');
+            }
+        } else {
+            attempts++;
+            if (attempts < maxAttempts) {
+                console.log(`Bootstrap еще не загружен, попытка ${attempts}/${maxAttempts}...`);
+                setTimeout(initDropdown, 100);
+            } else {
+                console.error('Bootstrap не загрузился за отведенное время');
+            }
+        }
+    }
+    
+    initDropdown();
+});
+</script>
+
+<!-- Модальное окно создания тикета -->
+{% if current_user.is_authenticated %}
+<div class="modal fade" id="ticketModal" tabindex="-1" aria-labelledby="ticketModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="ticketModalLabel">
+                    <i class="fas fa-ticket-alt text-primary me-2"></i>
+                    Создать тикет поддержки
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="ticketForm" onsubmit="event.preventDefault(); createTicket();">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-3">
+                        <label for="ticketSubject" class="form-label text-white">Тема *</label>
+                        <input type="text" class="form-control" id="ticketSubject" name="subject" required 
+                               placeholder="Кратко опишите проблему" minlength="5" maxlength="255">
+                    </div>
+                    <div class="mb-3">
+                        <label for="ticketMessage" class="form-label text-white">Сообщение *</label>
+                        <textarea class="form-control" id="ticketMessage" name="message" rows="5" required 
+                                  placeholder="Подробно опишите вашу проблему или вопрос" minlength="10"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="ticketFiles" class="form-label text-white">Прикрепить файлы (до 10 МБ каждый)</label>
+                        <input type="file" class="form-control" id="ticketFiles" name="files" multiple 
+                               accept="image/*,.pdf,.doc,.docx,.txt,.zip,.rar">
+                        <div class="form-text text-muted">Поддерживаемые форматы: изображения, PDF, документы, архивы</div>
+                    </div>
+                    <div id="fileList" class="mb-3">
+                        <!-- Здесь будут отображаться выбранные файлы -->
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-primary" id="ticketSubmitBtn" onclick="createTicket()">
+                    <i class="fas fa-paper-plane me-1"></i>Отправить тикет
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+</body>
+</html> 

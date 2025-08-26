@@ -1,0 +1,73 @@
+# Конфиденциальные файлы
+.env
+.env.local
+.env.production
+.env.staging
+
+# База данных
+*.db
+*.sqlite
+*.sqlite3
+
+# Логи
+*.log
+logs/
+
+# Кэш Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Виртуальное окружение
+venv/
+env/
+ENV/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Временные файлы
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+
+# Загруженные файлы
+app/static/uploads/
+app/static/chat_files/
+app/static/ticket_files/
+
+# Секретные ключи
+*.key
+*.pem
+*.p12
+
+# Конфигурационные файлы с секретами
+config_secret.py
+secrets.py
+config.py 
+*.json
+instance/
+for_my_love/

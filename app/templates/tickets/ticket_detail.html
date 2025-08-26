@@ -1,0 +1,409 @@
+{% extends "base.html" %}
+
+{% block title %}Тикет #{{ ticket.id }} - cysu{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- Заголовок тикета -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="mb-0">
+                        <i class="fas fa-ticket-alt text-primary me-2"></i>
+                        Тикет #{{ ticket.id }}
+                    </h5>
+                    <small class="text-muted">Создан {{ ticket.created_at.strftime('%d.%m.%Y в %H:%M') }}</small>
+                </div>
+                <div class="d-flex gap-2">
+                    {% if ticket.status == 'pending' %}
+                        <span class="badge bg-warning text-dark">Ожидает обработки</span>
+                    {% elif ticket.status == 'accepted' %}
+                        <span class="badge bg-success">Принят</span>
+                    {% elif ticket.status == 'rejected' %}
+                        <span class="badge bg-danger">Отклонен</span>
+                    {% elif ticket.status == 'closed' %}
+                        <span class="badge bg-secondary">Закрыт</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-white mb-2">Информация о пользователе</h6>
+                        <p class="mb-1"><strong class="text-white">Имя:</strong> <span class="text-muted">{{ ticket.user.username }}</span></p>
+                        <p class="mb-1"><strong class="text-white">Email:</strong> <span class="text-muted">{{ ticket.user.email }}</span></p>
+                        <p class="mb-0"><strong class="text-white">Дата регистрации:</strong> <span class="text-muted">{{ ticket.user.id }}</span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-white mb-2">Детали тикета</h6>
+                        <p class="mb-1"><strong class="text-white">Статус:</strong> 
+                            {% if ticket.status == 'pending' %}
+                                <span class="text-warning">Ожидает</span>
+                            {% elif ticket.status == 'accepted' %}
+                                <span class="text-success">Принят</span>
+                            {% elif ticket.status == 'rejected' %}
+                                <span class="text-danger">Отклонен</span>
+                            {% elif ticket.status == 'closed' %}
+                                <span class="text-secondary">Закрыт</span>
+                            {% endif %}
+                        </p>
+                        {% if ticket.admin_id %}
+                            <p class="mb-1"><strong class="text-white">Обработан:</strong> <span class="text-muted">{{ ticket.updated_at.strftime('%d.%m.%Y в %H:%M') }}</span></p>
+                        {% endif %}
+                        <p class="mb-0"><strong class="text-white">Файлов:</strong> <span class="text-muted">{{ ticket.files|length }}</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Чат тикета -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0 text-white">
+                    <i class="fas fa-comments text-primary me-2"></i>
+                    История сообщений
+                </h6>
+            </div>
+            <div class="card-body" style="background-color: #1a1a1a; min-height: 400px; display: flex; flex-direction: column;">
+                <div class="chat-messages" id="chatMessages" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; padding-right: 10px; scroll-behavior: smooth;">
+                    <style>
+                        .chat-messages::-webkit-scrollbar {
+                            width: 6px;
+                        }
+                        .chat-messages::-webkit-scrollbar-track {
+                            background: #2a2a2a;
+                            border-radius: 3px;
+                        }
+                        .chat-messages::-webkit-scrollbar-thumb {
+                            background: #555;
+                            border-radius: 3px;
+                        }
+                        .chat-messages::-webkit-scrollbar-thumb:hover {
+                            background: #777;
+                        }
+                        .message-bubble {
+                            animation: fadeInUp 0.3s ease-out;
+                        }
+                        @keyframes fadeInUp {
+                            from {
+                                opacity: 0;
+                                transform: translateY(10px);
+                            }
+                            to {
+                                opacity: 1;
+                                transform: translateY(0);
+                            }
+                        }
+                        .new-message-indicator {
+                            position: fixed;
+                            bottom: 20px;
+                            right: 20px;
+                            background: #007bff;
+                            color: white;
+                            padding: 10px 15px;
+                            border-radius: 20px;
+                            cursor: pointer;
+                            z-index: 1000;
+                            display: none;
+                            animation: bounce 1s infinite;
+                        }
+                        @keyframes bounce {
+                            0%, 20%, 50%, 80%, 100% {
+                                transform: translateY(0);
+                            }
+                            40% {
+                                transform: translateY(-5px);
+                            }
+                            60% {
+                                transform: translateY(-3px);
+                            }
+                        }
+                    </style>
+                    <!-- Сообщение пользователя (первое) -->
+                    <div class="message user-message mb-3">
+                        <div class="d-flex justify-content-start">
+                            <div class="message-content" style="max-width: 70%;">
+                                <div class="message-bubble" style="background-color: #007bff; color: white; padding: 12px 16px; border-radius: 18px 18px 18px 4px; position: relative;">
+                                    <div class="message-header mb-1">
+                                        <small class="text-white-50">
+                                            <i class="fas fa-user me-1"></i>{{ ticket.user.username }}
+                                        </small>
+                                    </div>
+                                    <div class="message-text" style="white-space: pre-wrap;">{{ ticket.message }}</div>
+                                    
+                                    <!-- Файлы пользователя -->
+                                    {% if ticket.files %}
+                                        <div class="message-files mt-2">
+                                            {% for file in ticket.files %}
+                                            <div class="file-item" style="background-color: rgba(255,255,255,0.1); padding: 8px; border-radius: 8px; margin-top: 8px;">
+                                                <div class="d-flex align-items-center">
+                                                    {% if file.file_type == 'image' %}
+                                                        <i class="fas fa-image text-white me-2"></i>
+                                                    {% elif file.file_type == 'document' %}
+                                                        <i class="fas fa-file-alt text-white me-2"></i>
+                                                    {% else %}
+                                                        <i class="fas fa-archive text-white me-2"></i>
+                                                    {% endif %}
+                                                    <span class="text-white small">{{ file.file_name }}</span>
+                                                    <a href="{{ url_for('static', filename=file.file_path) }}" 
+                                                       class="btn btn-sm btn-outline-light ms-2" target="_blank" title="Скачать">
+                                                        <i class="fas fa-download"></i>
+                                                    </a>
+                                                </div>
+                                                <small class="text-white-50">{{ (file.file_size / 1024 / 1024)|round(2) }} МБ</small>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="message-time text-start mt-1">
+                                    <small class="text-muted">{{ ticket.created_at.strftime('%d.%m.%Y в %H:%M') }}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Все сообщения чата в хронологическом порядке -->
+                    {% for message in ticket.messages|sort(attribute='created_at') %}
+                        {% if message.is_admin %}
+                        <div class="message admin-message mb-3">
+                            <div class="d-flex justify-content-end">
+                                <div class="message-content" style="max-width: 70%;">
+                                    <div class="message-bubble" style="background-color: #28a745; color: white; padding: 12px 16px; border-radius: 18px 18px 4px 18px; position: relative;">
+                                        <div class="message-header mb-1">
+                                            <small class="text-white-50">
+                                                <i class="fas fa-user-shield me-1"></i>Вы (Администратор)
+                                            </small>
+                                        </div>
+                                        <div class="message-text" style="white-space: pre-wrap;">{{ message.message }}</div>
+                                    </div>
+                                    <div class="message-time text-end mt-1">
+                                        <small class="text-muted">{{ message.created_at.strftime('%d.%m.%Y в %H:%M') }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="message user-message mb-3">
+                            <div class="d-flex justify-content-start">
+                                <div class="message-content" style="max-width: 70%;">
+                                    <div class="message-bubble" style="background-color: #007bff; color: white; padding: 12px 16px; border-radius: 18px 18px 18px 4px; position: relative;">
+                                        <div class="message-header mb-1">
+                                            <small class="text-white-50">
+                                                <i class="fas fa-user me-1"></i>{{ ticket.user.username }}
+                                            </small>
+                                        </div>
+                                        <div class="message-text" style="white-space: pre-wrap;">{{ message.message }}</div>
+                                    </div>
+                                    <div class="message-time text-start mt-1">
+                                        <small class="text-muted">{{ message.created_at.strftime('%d.%m.%Y в %H:%M') }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                
+                <!-- Индикатор новых сообщений -->
+                <div id="newMessageIndicator" class="new-message-indicator" onclick="scrollToNewMessage()">
+                    <i class="fas fa-arrow-down me-1"></i>Новые сообщения
+                </div>
+
+                <!-- Форма ответа администратора -->
+                {% if ticket.status == 'accepted' %}
+                    <div class="chat-input mt-4" style="border-top: 1px solid #3a3a3a; padding-top: 20px;">
+                        {% if ticket.user_response %}
+                            <div class="alert alert-info mb-3" style="background-color: #1a1a1a; border: 1px solid #3a3a3a; color: #ffffff;">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Пользователь ответил на ваш ответ. Вы можете продолжить диалог.
+                            </div>
+                        {% endif %}
+                        <form method="POST" action="{{ url_for('main.respond_to_ticket', ticket_id=ticket.id) }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <div class="mb-3">
+                                <textarea class="form-control" name="response" rows="3" 
+                                          placeholder="{% if ticket.user_response %}Продолжите диалог...{% else %}Введите ваш ответ пользователю...{% endif %}" required 
+                                          style="border-radius: 20px; resize: none;"></textarea>
+                            </div>
+                            <div class="d-flex justify-content-end">
+                                <button type="submit" class="btn btn-primary" style="border-radius: 20px;">
+                                    <i class="fas fa-paper-plane me-1"></i>Отправить
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Действия с тикетом -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0 text-white">Действия</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="{{ url_for('main.tickets') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Назад к списку
+                    </a>
+                    
+                    {% if ticket.status == 'pending' %}
+                        <form method="POST" action="{{ url_for('main.accept_ticket', ticket_id=ticket.id) }}" style="display: inline;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check me-1"></i>Принять
+                            </button>
+                        </form>
+                        <form method="POST" action="{{ url_for('main.reject_ticket', ticket_id=ticket.id) }}" style="display: inline;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-times me-1"></i>Отклонить
+                            </button>
+                        </form>
+                    {% elif ticket.status == 'accepted' %}
+                        <form method="POST" action="{{ url_for('main.close_ticket', ticket_id=ticket.id) }}" style="display: inline;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-secondary">
+                                <i class="fas fa-lock me-1"></i>Закрыть
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let isUserScrolling = false;
+let lastScrollTop = 0;
+
+// Функция для прокрутки чата к последнему сообщению
+function scrollChatToBottom() {
+    const chatMessages = document.getElementById('chatMessages');
+    if (chatMessages) {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        hideNewMessageIndicator();
+    }
+}
+
+// Функция для плавной прокрутки к новому сообщению
+function scrollToNewMessage() {
+    const chatMessages = document.getElementById('chatMessages');
+    if (chatMessages) {
+        chatMessages.scrollTo({
+            top: chatMessages.scrollHeight,
+            behavior: 'smooth'
+        });
+        hideNewMessageIndicator();
+    }
+}
+
+// Показать индикатор новых сообщений
+function showNewMessageIndicator() {
+    const indicator = document.getElementById('newMessageIndicator');
+    if (indicator) {
+        indicator.style.display = 'block';
+    }
+}
+
+// Скрыть индикатор новых сообщений
+function hideNewMessageIndicator() {
+    const indicator = document.getElementById('newMessageIndicator');
+    if (indicator) {
+        indicator.style.display = 'none';
+    }
+}
+
+// Проверка, находится ли пользователь внизу чата
+function isAtBottom() {
+    const chatMessages = document.getElementById('chatMessages');
+    if (chatMessages) {
+        const threshold = 50; // 50px от низа
+        return chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight < threshold;
+    }
+    return false;
+}
+
+// Обработчик прокрутки
+function handleScroll() {
+    const chatMessages = document.getElementById('chatMessages');
+    if (chatMessages) {
+        const currentScrollTop = chatMessages.scrollTop;
+        
+        // Определяем, прокручивает ли пользователь
+        if (Math.abs(currentScrollTop - lastScrollTop) > 5) {
+            isUserScrolling = true;
+            setTimeout(() => {
+                isUserScrolling = false;
+            }, 1000);
+        }
+        
+        lastScrollTop = currentScrollTop;
+        
+        // Если пользователь внизу, скрываем индикатор
+        if (isAtBottom()) {
+            hideNewMessageIndicator();
+        }
+    }
+}
+
+// Прокручиваем к последнему сообщению при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    const chatMessages = document.getElementById('chatMessages');
+    if (chatMessages) {
+        // Добавляем обработчик прокрутки
+        chatMessages.addEventListener('scroll', handleScroll);
+        
+        // Прокручиваем к последнему сообщению
+        scrollChatToBottom();
+        
+        // Также прокручиваем после небольшой задержки для корректного отображения
+        setTimeout(scrollChatToBottom, 100);
+        setTimeout(scrollChatToBottom, 500);
+    }
+});
+
+// Прокручиваем к последнему сообщению при отправке формы
+document.addEventListener('submit', function(e) {
+    if (e.target.action && e.target.action.includes('/respond')) {
+        // Прокручиваем сразу после отправки
+        setTimeout(scrollToNewMessage, 100);
+        // И еще раз после перезагрузки страницы
+        setTimeout(scrollChatToBottom, 1000);
+    }
+});
+
+// Автоматическая прокрутка при появлении новых сообщений
+const observer = new MutationObserver(function(mutations) {
+    mutations.forEach(function(mutation) {
+        if (mutation.type === 'childList') {
+            // Если пользователь не прокручивает и не внизу, показываем индикатор
+            if (!isUserScrolling && !isAtBottom()) {
+                showNewMessageIndicator();
+            } else {
+                // Иначе прокручиваем к новому сообщению
+                setTimeout(scrollToNewMessage, 50);
+            }
+        }
+    });
+});
+
+// Начинаем наблюдение за изменениями в чате
+document.addEventListener('DOMContentLoaded', function() {
+    const chatMessages = document.getElementById('chatMessages');
+    if (chatMessages) {
+        observer.observe(chatMessages, {
+            childList: true,
+            subtree: true
+        });
+    }
+});
+</script>
+{% endblock %} 

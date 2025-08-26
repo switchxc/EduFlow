@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}Оформление подписки{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Основная карточка -->
+            <div class="card border-0" style="background: #1a1a1a; border: 1px solid #2a2a2a !important;">
+                <div class="card-header" style="background: #2a2a2a; border-bottom: 1px solid #3a3a3a; color: #ffffff;">
+                    <h1 class="h4 mb-0"><i class="fas fa-credit-card me-2"></i>Оформление подписки</h1>
+                </div>
+                <div class="card-body">
+                    <!-- Описание -->
+                    <div class="mb-3">
+                        <p class="text-light mb-0">Получите полный доступ ко всем учебным материалам, лекциям и практическим заданиям на платформе cysu.</p>
+                    </div>
+
+                    <!-- Выбор периода подписки -->
+                    <section class="mb-4">
+                        <h2 class="h5 text-white mb-3">Выберите период подписки</h2>
+                        <div class="row g-2">
+                            <div class="col-md-3 col-6">
+                                <div class="p-2 subscription-card" onclick="selectPeriod('1')" id="period-1" style="background: #2a2a2a; border: 1px solid #3a3a3a; border-radius: 8px; cursor: pointer; transition: all 0.2s ease; text-align: center;">
+                                    <h6 class="text-white mb-1" style="font-size: 0.9rem;">1 месяц</h6>
+                                    <div class="text-primary fw-bold mb-1" style="font-size: 1.1rem;">89₽</div>
+                                    <small class="text-muted" style="font-size: 0.8rem;">89₽/мес</small>
+                                    <div class="mt-1">
+                                        <span class="badge bg-secondary" style="font-size: 0.65rem;">Экономия - нет</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6">
+                                <div class="p-2 subscription-card" onclick="selectPeriod('3')" id="period-3" style="background: #2a2a2a; border: 1px solid #3a3a3a; border-radius: 8px; cursor: pointer; transition: all 0.2s ease; text-align: center;">
+                                    <h6 class="text-white mb-1" style="font-size: 0.9rem;">3 месяца</h6>
+                                    <div class="text-primary fw-bold mb-1" style="font-size: 1.1rem;">199₽</div>
+                                    <small class="text-success" style="font-size: 0.8rem;">66₽/мес</small>
+                                    <div class="mt-1">
+                                        <span class="badge bg-success" style="font-size: 0.65rem;">Экономия 68₽</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6">
+                                <div class="p-2 subscription-card" onclick="selectPeriod('6')" id="period-6" style="background: #2a2a2a; border: 1px solid #3a3a3a; border-radius: 8px; cursor: pointer; transition: all 0.2s ease; text-align: center;">
+                                    <h6 class="text-white mb-1" style="font-size: 0.9rem;">6 месяцев</h6>
+                                    <div class="text-primary fw-bold mb-1" style="font-size: 1.1rem;">349₽</div>
+                                    <small class="text-success" style="font-size: 0.8rem;">58₽/мес</small>
+                                    <div class="mt-1">
+                                        <span class="badge bg-success" style="font-size: 0.65rem;">Экономия 185₽</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6">
+                                <div class="p-2 subscription-card" onclick="selectPeriod('12')" id="period-12" style="background: #2a2a2a; border: 1px solid #3a3a3a; border-radius: 8px; cursor: pointer; transition: all 0.2s ease; text-align: center;">
+                                    <h6 class="text-white mb-1" style="font-size: 0.9rem;">1 год</h6>
+                                    <div class="text-primary fw-bold mb-1" style="font-size: 1.1rem;">469₽</div>
+                                    <small class="text-success" style="font-size: 0.8rem;">39₽/мес</small>
+                                    <div class="mt-1">
+                                        <span class="badge bg-success" style="font-size: 0.65rem;">Экономия 599₽</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Что включено -->
+                    <section class="mb-4">
+                        <h2 class="h5 text-white mb-3">Что включено в подписку</h2>
+                        <div class="row g-2">
+                            <div class="col-md-4">
+                                <div class="p-2" style="background: #2a2a2a; border: 1px solid #3a3a3a; border-radius: 8px;">
+                                    <h6 class="text-primary mb-1" style="font-size: 0.9rem;"><i class="fas fa-book me-1"></i>Учебные материалы</h6>
+                                    <p class="text-muted small mb-0" style="font-size: 0.8rem;">Полный доступ ко всем учебным материалам и лекциям.</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="p-2" style="background: #2a2a2a; border: 1px solid #3a3a3a; border-radius: 8px;">
+                                    <h6 class="text-primary mb-1" style="font-size: 0.9rem;"><i class="fas fa-upload me-1"></i>Загрузка решений</h6>
+                                    <p class="text-muted small mb-0" style="font-size: 0.8rem;">Возможность загружать решения заданий.</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="p-2" style="background: #2a2a2a; border: 1px solid #3a3a3a; border-radius: 8px;">
+                                    <h6 class="text-primary mb-1" style="font-size: 0.9rem;"><i class="fas fa-headset me-1"></i>Поддержка</h6>
+                                    <p class="text-muted small mb-0" style="font-size: 0.8rem;">Персональная поддержка по всем вопросам.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Кнопка оплаты -->
+                    <section class="text-center">
+                        <button onclick="createPayment()" class="btn btn-primary" id="payment-btn" style="background: #007bff; border: none; padding: 0.5rem 1.5rem; font-weight: 600; border-radius: 8px; font-size: 0.8rem; width: 40%;">
+                            <i class="fas fa-credit-card me-2"></i>
+                            Оплатить <span id="price-text" style="transition: all 0.3s ease;">89₽</span>
+                        </button>
+                        <div class="mt-2">
+                            <small class="text-muted" style="font-size: 0.8rem;">
+                                <i class="fas fa-lock me-1"></i>
+                                Безопасная оплата через ЮKassa
+                            </small>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.subscription-card:hover {
+    border-color: #007bff !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
+}
+
+.subscription-card.selected {
+    background: #1a1a1a !important;
+    border-color: #007bff !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.25);
+}
+
+.btn-primary:hover {
+    background: #0056b3 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+}
+
+@media (max-width: 768px) {
+    .subscription-card {
+        margin-bottom: 0.5rem;
+    }
+}
+</style>
+
+<script>
+let selectedPeriod = '1';
+const prices = {
+    '1': 89,
+    '3': 199,
+    '6': 349,
+    '12': 469
+};
+
+function selectPeriod(period) {
+    console.log('Выбран период:', period, 'Цена:', prices[period]);
+    
+    // Убираем выделение со всех карточек
+    document.querySelectorAll('.subscription-card').forEach(card => {
+        card.classList.remove('selected');
+        card.style.background = '#2a2a2a';
+        card.style.border = '1px solid #3a3a3a';
+        card.style.transform = 'translateY(0)';
+        card.style.boxShadow = 'none';
+    });
+    
+    // Выделяем выбранную карточку
+    const selectedCard = document.getElementById('period-' + period);
+    selectedCard.classList.add('selected');
+    selectedCard.style.background = '#1a1a1a';
+    selectedCard.style.border = '1px solid #007bff';
+    selectedCard.style.transform = 'translateY(-2px)';
+    selectedCard.style.boxShadow = '0 4px 12px rgba(0, 123, 255, 0.25)';
+    
+    // Анимация изменения цены
+    const priceText = document.getElementById('price-text');
+    if (priceText) {
+        const currentPrice = parseInt(priceText.textContent);
+        const newPrice = prices[period];
+        
+        if (newPrice !== currentPrice) {
+            // Простая анимация с fade эффектом
+            priceText.style.opacity = '0';
+            priceText.style.transform = 'scale(0.8)';
+            
+            setTimeout(() => {
+                priceText.textContent = newPrice + '₽';
+                priceText.style.opacity = '1';
+                priceText.style.transform = 'scale(1.1)';
+                
+                setTimeout(() => {
+                    priceText.style.transform = 'scale(1)';
+                }, 100);
+            }, 150);
+        }
+    }
+    
+    // Обновляем выбранный период
+    selectedPeriod = period;
+}
+
+function createPayment() {
+    console.log('Создание платежа для периода:', selectedPeriod, 'Цена:', prices[selectedPeriod]);
+    
+    // Создаем URL для создания платежа
+    const url = new URL(window.location.href);
+    url.searchParams.set('period', selectedPeriod);
+    url.searchParams.set('amount', prices[selectedPeriod]);
+    
+    console.log('Переход на URL:', url.toString());
+    window.location.href = url.toString();
+}
+
+// Выбираем первый период по умолчанию
+document.addEventListener('DOMContentLoaded', function() {
+    selectPeriod('1');
+});
+</script>
+{% endblock %} 

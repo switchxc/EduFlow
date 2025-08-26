@@ -1,0 +1,380 @@
+{% extends "base.html" %}
+
+{% block title %}Мой тикет #{{ ticket.id }} - cysu{% endblock %}
+
+{% block scripts %}
+<script>
+// Функция для прокрутки чата к последнему сообщению
+function scrollChatToBottom() {
+    const chatMessages = document.getElementById('chatMessages');
+    if (chatMessages) {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+}
+
+// Функция для плавной прокрутки к новому сообщению
+function scrollToNewMessage() {
+    const chatMessages = document.getElementById('chatMessages');
+    if (chatMessages) {
+        chatMessages.scrollTo({
+            top: chatMessages.scrollHeight,
+            behavior: 'smooth'
+        });
+    }
+}
+
+// Прокручиваем к последнему сообщению при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    const chatMessages = document.getElementById('chatMessages');
+    if (chatMessages) {
+        // Прокручиваем к последнему сообщению
+        scrollChatToBottom();
+        
+        // Также прокручиваем после небольшой задержки для корректного отображения
+        setTimeout(scrollChatToBottom, 100);
+        setTimeout(scrollChatToBottom, 500);
+    }
+});
+
+// Функция отправки ответа пользователя
+function sendUserResponse() {
+    const form = document.getElementById('userResponseForm');
+    const messageInput = document.getElementById('userResponseMessage');
+    const filesInput = document.getElementById('userResponseFiles');
+    const submitBtn = document.getElementById('userResponseSubmitBtn');
+    
+    const message = messageInput.value.trim();
+    if (!message || message.length < 5) {
+        alert('Сообщение должно содержать минимум 5 символов');
+        return;
+    }
+    
+    // Показываем индикатор загрузки
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Отправка...';
+    
+    const formData = new FormData();
+    formData.append('ticket_id', form.querySelector('input[name="ticket_id"]').value);
+    formData.append('message', message);
+    formData.append('csrf_token', form.querySelector('input[name="csrf_token"]').value);
+    
+    // Добавляем файлы
+    if (filesInput.files.length > 0) {
+        for (let i = 0; i < filesInput.files.length; i++) {
+            formData.append('files', filesInput.files[i]);
+        }
+    }
+    
+    fetch('/api/ticket/user_response', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Очищаем форму
+            messageInput.value = '';
+            filesInput.value = '';
+            updateUserResponseFileList();
+            
+            // Перезагружаем страницу для отображения нового сообщения
+            location.reload();
+        } else {
+            alert(data.error || 'Ошибка отправки ответа');
+        }
+    })
+    .catch(error => {
+        console.error('Ошибка:', error);
+        alert('Ошибка отправки ответа');
+    })
+    .finally(() => {
+        // Восстанавливаем кнопку
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-paper-plane me-1"></i>Отправить';
+    });
+}
+
+// Функция обновления списка выбранных файлов
+function updateUserResponseFileList() {
+    const filesInput = document.getElementById('userResponseFiles');
+    const fileList = document.getElementById('userResponseFileList');
+    
+    if (!filesInput || !fileList) return;
+    
+    fileList.innerHTML = '';
+    
+    if (filesInput.files.length > 0) {
+        const fileListTitle = document.createElement('div');
+        fileListTitle.className = 'text-white small mb-2';
+        fileListTitle.innerHTML = '<i class="fas fa-paperclip me-1"></i>Выбранные файлы:';
+        fileList.appendChild(fileListTitle);
+        
+        for (let i = 0; i < filesInput.files.length; i++) {
+            const file = filesInput.files[i];
+            const fileItem = document.createElement('div');
+            fileItem.className = 'text-muted small';
+            fileItem.textContent = `${file.name} (${(file.size / 1024 / 1024).toFixed(2)} МБ)`;
+            fileList.appendChild(fileItem);
+        }
+    }
+}
+
+// Обработчик изменения файлов
+document.addEventListener('DOMContentLoaded', function() {
+    const filesInput = document.getElementById('userResponseFiles');
+    if (filesInput) {
+        filesInput.addEventListener('change', updateUserResponseFileList);
+    }
+});
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- Заголовок тикета -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="mb-0">
+                        <i class="fas fa-ticket-alt text-primary me-2"></i>
+                        Мой тикет #{{ ticket.id }}
+                    </h5>
+                    <small class="text-muted">Создан {{ ticket.created_at.strftime('%d.%m.%Y в %H:%M') }}</small>
+                </div>
+                <div class="d-flex gap-2">
+                    {% if ticket.status == 'pending' %}
+                        <span class="badge bg-warning text-dark">Ожидает обработки</span>
+                    {% elif ticket.status == 'accepted' %}
+                        <span class="badge bg-success">Принят</span>
+                    {% elif ticket.status == 'rejected' %}
+                        <span class="badge bg-danger">Отклонен</span>
+                    {% elif ticket.status == 'closed' %}
+                        <span class="badge bg-secondary">Закрыт</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-white mb-2">Детали тикета</h6>
+                        <p class="mb-1"><strong class="text-white">Статус:</strong> 
+                            {% if ticket.status == 'pending' %}
+                                <span class="text-warning">Ожидает</span>
+                            {% elif ticket.status == 'accepted' %}
+                                <span class="text-success">Принят</span>
+                            {% elif ticket.status == 'rejected' %}
+                                <span class="text-danger">Отклонен</span>
+                            {% elif ticket.status == 'closed' %}
+                                <span class="text-secondary">Закрыт</span>
+                            {% endif %}
+                        </p>
+                        {% if ticket.admin_id %}
+                            <p class="mb-1"><strong class="text-white">Обработан:</strong> <span class="text-muted">{{ ticket.updated_at.strftime('%d.%m.%Y в %H:%M') }}</span></p>
+                        {% endif %}
+                        <p class="mb-0"><strong class="text-white">Файлов:</strong> <span class="text-muted">{{ ticket.files|length }}</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Чат тикета -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0 text-white">
+                    <i class="fas fa-comments text-primary me-2"></i>
+                    История сообщений
+                </h6>
+            </div>
+            <div class="card-body" style="background-color: #1a1a1a; min-height: 400px; display: flex; flex-direction: column;">
+                <div class="chat-messages" id="chatMessages" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; padding-right: 10px; scroll-behavior: smooth;">
+                    <style>
+                        .chat-messages::-webkit-scrollbar {
+                            width: 6px;
+                        }
+                        .chat-messages::-webkit-scrollbar-track {
+                            background: #2a2a2a;
+                            border-radius: 3px;
+                        }
+                        .chat-messages::-webkit-scrollbar-thumb {
+                            background: #555;
+                            border-radius: 3px;
+                        }
+                        .chat-messages::-webkit-scrollbar-thumb:hover {
+                            background: #777;
+                        }
+                        .message-bubble {
+                            animation: fadeInUp 0.3s ease-out;
+                        }
+                        @keyframes fadeInUp {
+                            from {
+                                opacity: 0;
+                                transform: translateY(10px);
+                            }
+                            to {
+                                opacity: 1;
+                                transform: translateY(0);
+                            }
+                        }
+                        
+                        /* Стили для файлового инпута */
+                        input[type="file"] {
+                            border-radius: 20px !important;
+                            background-color: #2a2a2a !important;
+                            border: 1px solid #3a3a3a !important;
+                            color: #ffffff !important;
+                        }
+                        
+                        input[type="file"]:focus {
+                            border-color: #007bff !important;
+                            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25) !important;
+                        }
+                        
+                        input[type="file"]::-webkit-file-upload-button {
+                            background-color: #007bff !important;
+                            color: white !important;
+                            border: none !important;
+                            border-radius: 15px !important;
+                            padding: 8px 16px !important;
+                            margin-right: 10px !important;
+                            cursor: pointer !important;
+                        }
+                        
+                        input[type="file"]::-webkit-file-upload-button:hover {
+                            background-color: #0056b3 !important;
+                        }
+                    </style>
+                    
+                    <!-- Сообщение пользователя (первое) -->
+                    <div class="message user-message mb-3">
+                        <div class="d-flex justify-content-end">
+                            <div class="message-content" style="max-width: 70%;">
+                                <div class="message-bubble" style="background-color: #007bff; color: white; padding: 12px 16px; border-radius: 18px 18px 4px 18px; position: relative;">
+                                    <div class="message-text" style="white-space: pre-wrap;">{{ ticket.message }}</div>
+                                    
+                                    <!-- Файлы пользователя -->
+                                    {% if ticket.files %}
+                                        <div class="message-files mt-2">
+                                            {% for file in ticket.files %}
+                                            <div class="file-item" style="background-color: rgba(255,255,255,0.1); padding: 8px; border-radius: 8px; margin-top: 8px;">
+                                                <div class="d-flex align-items-center">
+                                                    {% if file.file_type == 'image' %}
+                                                        <i class="fas fa-image text-white me-2"></i>
+                                                    {% elif file.file_type == 'document' %}
+                                                        <i class="fas fa-file-alt text-white me-2"></i>
+                                                    {% else %}
+                                                        <i class="fas fa-archive text-white me-2"></i>
+                                                    {% endif %}
+                                                    <span class="text-white small">{{ file.file_name }}</span>
+                                                    <a href="{{ url_for('static', filename=file.file_path) }}" 
+                                                       class="btn btn-sm btn-outline-light ms-2" target="_blank" title="Скачать">
+                                                        <i class="fas fa-download"></i>
+                                                    </a>
+                                                </div>
+                                                <small class="text-white-50">{{ (file.file_size / 1024 / 1024)|round(2) }} МБ</small>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="message-time text-end mt-1">
+                                    <small class="text-muted">{{ ticket.created_at.strftime('%d.%m.%Y в %H:%M') }}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Все сообщения чата в хронологическом порядке -->
+                    {% for message in ticket.messages|sort(attribute='created_at') %}
+                        {% if message.is_admin %}
+                        <div class="message admin-message mb-3">
+                            <div class="d-flex justify-content-start">
+                                <div class="message-content" style="max-width: 70%;">
+                                    <div class="message-bubble" style="background-color: #28a745; color: white; padding: 12px 16px; border-radius: 18px 18px 18px 4px; position: relative;">
+                                        <div class="message-header mb-1">
+                                            <small class="text-white-50">
+                                                <i class="fas fa-user-shield me-1"></i>Администратор
+                                            </small>
+                                        </div>
+                                        <div class="message-text" style="white-space: pre-wrap;">{{ message.message }}</div>
+                                    </div>
+                                    <div class="message-time text-start mt-1">
+                                        <small class="text-muted">{{ message.created_at.strftime('%d.%m.%Y в %H:%M') }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="message user-message mb-3">
+                            <div class="d-flex justify-content-end">
+                                <div class="message-content" style="max-width: 70%;">
+                                    <div class="message-bubble" style="background-color: #007bff; color: white; padding: 12px 16px; border-radius: 18px 18px 4px 18px; position: relative;">
+                                        <div class="message-text" style="white-space: pre-wrap;">{{ message.message }}</div>
+                                    </div>
+                                    <div class="message-time text-end mt-1">
+                                        <small class="text-muted">{{ message.created_at.strftime('%d.%m.%Y в %H:%M') }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                <!-- Форма для ответа пользователя -->
+                {% set admin_messages = ticket.messages|selectattr('is_admin', 'equalto', true)|list %}
+                {% set user_messages = ticket.messages|selectattr('is_admin', 'equalto', false)|list %}
+                {% set has_admin_messages = admin_messages|length > 0 %}
+                {% set has_user_replies = user_messages|length > 0 %}
+                
+                {% if ticket.status != 'closed' and has_admin_messages %}
+                    <div class="chat-input mt-4" style="border-top: 1px solid #3a3a3a; padding-top: 20px;">
+                        <form id="userResponseForm" onsubmit="event.preventDefault(); sendUserResponse();">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="ticket_id" value="{{ ticket.id }}">
+                            <div class="mb-3">
+                                <textarea class="form-control" id="userResponseMessage" name="message" rows="3" 
+                                          placeholder="Введите ваш ответ..." required minlength="5" 
+                                          style="border-radius: 20px; resize: none;"></textarea>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="flex-grow-1 me-3">
+                                    <label for="userResponseFiles" class="form-label text-white mb-1">
+                                        <i class="fas fa-paperclip me-1"></i>Прикрепить файлы
+                                    </label>
+                                    <input type="file" class="form-control form-control-sm" id="userResponseFiles" name="files" multiple 
+                                           accept="image/*,.pdf,.doc,.docx,.txt,.zip,.rar" style="font-size: 0.8rem; border-radius: 20px;">
+                                    <div class="form-text text-muted small">До 10 МБ каждый файл</div>
+                                </div>
+                                <button type="submit" class="btn btn-primary" id="userResponseSubmitBtn" style="border-radius: 20px;">
+                                    <i class="fas fa-paper-plane me-1"></i>Отправить
+                                </button>
+                            </div>
+                            <div id="userResponseFileList" class="mt-2">
+                                <!-- Здесь будут отображаться выбранные файлы -->
+                            </div>
+                        </form>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Действия -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0 text-white">Действия</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>На главную
+                    </a>
+                    <button type="button" class="btn btn-outline-primary" onclick="openTicketModal()">
+                        <i class="fas fa-plus me-1"></i>Создать новый тикет
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

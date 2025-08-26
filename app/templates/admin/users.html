@@ -1,0 +1,817 @@
+{% extends 'base.html' %}
+{% block title %}Админка: Управление пользователями{% endblock %}
+
+{% block content %}
+<div class="container-fluid admin-users">
+  <!-- Заголовок -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">Управление пользователями</h2>
+    <span class="badge bg-primary fs-6">{{ users|length }} пользователей</span>
+  </div>
+
+  <div class="row g-4">
+    <!-- Создание пользователя -->
+    <div class="col-lg-4">
+      <div class="card shadow-sm border-0" style="background: #1a1a1a; height: fit-content;">
+        <div class="card-body">
+          <h5 class="card-title mb-3">
+            <i class="fas fa-user-plus me-2 text-primary"></i>Создать пользователя
+          </h5>
+          <form method="post">
+            {{ form.hidden_tag() }}
+            <div class="mb-3">
+              <label for="{{ form.username.id }}" class="form-label">Имя пользователя</label>
+              {{ form.username(class_='form-control', placeholder='Введите имя пользователя', style='background: #0e0e0f; border: 1px solid #3a3a3a; color: #ffffff; border-radius: 20px;') }}
+              {% if form.username.errors %}
+                <div class="text-danger small">
+                  {% for error in form.username.errors %}
+                    {{ error }}
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+            <div class="mb-3">
+              <label for="{{ form.email.id }}" class="form-label">Email</label>
+              {{ form.email(class_='form-control', placeholder='Введите email', style='background: #0e0e0f; border: 1px solid #3a3a3a; color: #ffffff; border-radius: 20px;') }}
+              {% if form.email.errors %}
+                <div class="text-danger small">
+                  {% for error in form.email.errors %}
+                    {{ error }}
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+            <div class="mb-3">
+              <label for="{{ form.password.id }}" class="form-label">Пароль</label>
+              {{ form.password(class_='form-control', placeholder='Введите пароль', style='background: #0e0e0f; border: 1px solid #3a3a3a; color: #ffffff; border-radius: 20px;') }}
+              {% if form.password.errors %}
+                <div class="text-danger small">
+                  {% for error in form.password.errors %}
+                    {{ error }}
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+            <div class="mb-3">
+              <label for="{{ form.confirm_password.id }}" class="form-label">Подтвердите пароль</label>
+              {{ form.confirm_password(class_='form-control', placeholder='Подтвердите пароль', style='background: #0e0e0f; border: 1px solid #3a3a3a; color: #ffffff; border-radius: 20px;') }}
+              {% if form.confirm_password.errors %}
+                <div class="text-danger small">
+                  {% for error in form.confirm_password.errors %}
+                    {{ error }}
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+            <div class="mb-3">
+              <label for="{{ form.group_id.id }}" class="form-label">Группа</label>
+              {{ form.group_id(class_='form-control', style='background: #0e0e0f; border: 1px solid #3a3a3a; color: #ffffff; border-radius: 20px;') }}
+              {% if form.group_id.errors %}
+                <div class="text-danger small">
+                  {% for error in form.group_id.errors %}
+                    {{ error }}
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+            <button type="submit" name="submit" value="Зарегистрироваться" class="btn btn-primary text-white w-100" style="color: #fff !important; border-radius: 20px;">
+              <i class="fas fa-plus me-2"></i>Создать пользователя
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Список пользователей -->
+    <div class="col-lg-8">
+      <div class="card shadow-sm border-0" style="background: #1a1a1a;">
+        <div class="card-body p-0">
+          <div class="table-responsive" style="border-radius: 14px;">
+            <table class="table table-hover mb-0" style="background: #1a1a1a; color: #ffffff;">
+              <thead style="background: #2a2a2a;">
+                <tr>
+                  <th class="border-0" style="color: #ffffff;">ID</th>
+                  <th class="border-0" style="color: #ffffff;">Пользователь</th>
+                  <th class="border-0" style="color: #ffffff;">Email</th>
+                  <th class="border-0" style="color: #ffffff;">Группа</th>
+                  <th class="border-0" style="color: #ffffff;">Статус</th>
+                  <th class="border-0" style="color: #ffffff;">Подписка</th>
+                  <th class="border-0" style="color: #ffffff;">Действия</th>
+                </tr>
+              </thead>
+              <tbody style="background: #1a1a1a;">
+                {% for user in users %}
+                <tr style="border-color: #3a3a3a; background: #1a1a1a; color: #ffffff;">
+                  <td style="color: #ffffff;"><span class="badge bg-secondary">{{ user.id }}</span></td>
+                  <td style="color: #ffffff;">
+                    <strong>{{ user.username }}</strong>
+                    {% if user.id == current_user.id %}
+                      <span class="badge bg-warning text-dark ms-1">Вы</span>
+                    {% endif %}
+                  </td>
+                  <td style="color: #ffffff;">
+                    <small class="text-muted">{{ user.email }}</small>
+                  </td>
+                  <td style="color: #ffffff;">
+                    {% if user.group %}
+                      <span class="badge bg-primary">{{ user.group.name }}</span>
+                      <button type="button" class="btn btn-sm btn-outline-primary ms-1" 
+                              data-bs-toggle="modal" 
+                              data-bs-target="#changeGroupModal{{ user.id }}"
+                              style="font-size: 0.6rem; padding: 0.1rem 0.3rem;">
+                        <i class="fas fa-edit"></i>
+                      </button>
+                    {% else %}
+                      <span class="text-muted">Не назначена</span>
+                      <button type="button" class="btn btn-sm btn-outline-warning ms-1" 
+                              data-bs-toggle="modal" 
+                              data-bs-target="#changeGroupModal{{ user.id }}"
+                              style="font-size: 0.6rem; padding: 0.1rem 0.3rem;">
+                        <i class="fas fa-plus"></i>
+                      </button>
+                    {% endif %}
+                  </td>
+                  <td style="color: #ffffff;">
+                    {% if user.is_admin %}
+                      <span class="badge bg-danger">Админ</span>
+                    {% else %}
+                      <span class="badge bg-secondary">Пользователь</span>
+                    {% endif %}
+                  </td>
+                  <td style="color: #ffffff;">
+                    {% if user.is_subscribed %}
+                      {% if user.subscription_expires %}
+                        <span class="badge bg-success">
+                          <i class="fas fa-check me-1"></i>
+                          До {{ user.subscription_expires.strftime('%d.%m.%Y') }}
+                        </span>
+                      {% else %}
+                        <span class="badge bg-success">Активна</span>
+                      {% endif %}
+                    {% else %}
+                      <span class="badge bg-warning text-dark">Нет подписки</span>
+                    {% endif %}
+                  </td>
+                  <td style="color: #ffffff;">
+                    <div class="d-grid" style="grid-template-columns: repeat(2, 1fr); max-width: 60px; gap: 0;">
+                      <!-- Показать новый пароль -->
+                      {% if password_map.get(user.id) %}
+                        <button type="button" class="btn btn-info" 
+                                data-bs-toggle="tooltip" 
+                                title="Новый пароль: {{ password_map.get(user.id) }}. Кликните для копирования." 
+                                onclick="copyPassword('{{ password_map.get(user.id) }}')"
+                                style="font-size: 0.6rem; width: 25px; height: 25px; padding: 0; margin: 0; display: flex; align-items: center; justify-content: center; border-radius: 0; min-width: 25px; min-height: 25px;">
+                          <i class="fas fa-key"></i>
+                        </button>
+                      {% else %}
+                        <!-- Сброс пароля -->
+                        <form method="post" style="display: contents;">
+                          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                          <input type="hidden" name="reset_user_id" value="{{ user.id }}">
+                          <button type="submit" class="btn btn-warning" data-bs-toggle="tooltip" title="Сбросить пароль" style="font-size: 0.6rem; width: 25px; height: 25px; padding: 0; margin: 0; display: flex; align-items: center; justify-content: center; border-radius: 0; min-width: 25px; min-height: 25px;">
+                            <i class="fas fa-key"></i>
+                          </button>
+                        </form>
+                      {% endif %}
+                      
+                      <!-- Изменение статуса администратора -->
+                      {% if user.id != current_user.id %}
+                        <form method="post" style="display: contents;">
+                          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                          <input type="hidden" name="toggle_admin_id" value="{{ user.id }}">
+                          <button type="submit" class="btn {% if user.is_admin %}btn-danger{% else %}btn-primary{% endif %}" 
+                                  data-bs-toggle="tooltip" 
+                                  title="{% if user.is_admin %}Снять админку{% else %}Назначить админом{% endif %}"
+                                  style="font-size: 0.6rem; width: 25px; height: 25px; padding: 0; margin: 0; display: flex; align-items: center; justify-content: center; border-radius: 0; min-width: 25px; min-height: 25px;">
+                            <i class="fas fa-user-shield"></i>
+                          </button>
+                        </form>
+                      {% endif %}
+                      
+                      <!-- Управление подпиской -->
+                      <form method="post" style="display: contents;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="toggle_subscription_id" value="{{ user.id }}">
+                        <button type="submit" class="btn {% if user.is_subscribed %}btn-warning{% else %}btn-success{% endif %}" 
+                                data-bs-toggle="tooltip" 
+                                title="{% if user.is_subscribed %}Отозвать подписку{% else %}Выдать подписку{% endif %}"
+                                style="font-size: 0.6rem; width: 25px; height: 25px; padding: 0; margin: 0; display: flex; align-items: center; justify-content: center; border-radius: 0; min-width: 25px; min-height: 25px;">
+                          <i class="fas fa-crown"></i>
+                        </button>
+                      </form>
+                      
+                      <!-- Удаление пользователя -->
+                      {% if not user.is_admin and user.id != current_user.id %}
+                        <form method="post" style="display: contents;" onsubmit="return confirm('Удалить пользователя {{ user.username }}?')">
+                          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                          <input type="hidden" name="delete_user_id" value="{{ user.id }}">
+                          <button type="submit" class="btn btn-danger" data-bs-toggle="tooltip" title="Удалить пользователя" style="font-size: 0.6rem; width: 25px; height: 25px; padding: 0; margin: 0; display: flex; align-items: center; justify-content: center; border-radius: 0; min-width: 25px; min-height: 25px;">
+                            <i class="fas fa-trash"></i>
+                          </button>
+                        </form>
+                      {% endif %}
+                    </div>
+                  </td>
+                </tr>
+                {% else %}
+                <tr style="background: #1a1a1a; color: #ffffff;">
+                  <td colspan="7" class="text-center text-muted py-4" style="color: #ffffff;">
+                    <i class="fas fa-users fa-2x mb-3"></i>
+                    <p>Нет пользователей</p>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Статистика -->
+  <div class="row g-4 mt-4">
+    <div class="col-md-3">
+      <div class="card shadow-sm border-0 text-center" style="background: #1a1a1a;">
+        <div class="card-body">
+          <i class="fas fa-users fa-2x text-primary mb-2"></i>
+          <h4 class="text-primary">{{ users|length }}</h4>
+          <small class="text-muted">Всего пользователей</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm border-0 text-center" style="background: #1a1a1a;">
+        <div class="card-body">
+          <i class="fas fa-crown fa-2x text-success mb-2"></i>
+          <h4 class="text-success">{{ users|selectattr('is_subscribed')|list|length }}</h4>
+          <small class="text-muted">С подпиской</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm border-0 text-center" style="background: #1a1a1a;">
+        <div class="card-body">
+          <i class="fas fa-user-shield fa-2x text-danger mb-2"></i>
+          <h4 class="text-danger">{{ users|selectattr('is_admin')|list|length }}</h4>
+          <small class="text-muted">Администраторов</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm border-0 text-center" style="background: #1a1a1a;">
+        <div class="card-body">
+          <i class="fas fa-user-times fa-2x text-warning mb-2"></i>
+          <h4 class="text-warning">{{ users|rejectattr('is_subscribed')|list|length }}</h4>
+          <small class="text-muted">Без подписки</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Управление короткими ссылками -->
+  <div class="row g-4 mt-4">
+    <div class="col-12">
+      <div class="card shadow-sm border-0" style="background: #1a1a1a;">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0"><i class="fas fa-link me-2 text-primary"></i>Короткие ссылки</h5>
+            <div class="d-flex align-items-center gap-2">
+              <span class="badge bg-secondary">{{ short_links|length }}</span>
+              <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#shortlinksTable" aria-expanded="false" aria-controls="shortlinksTable" id="toggleShortlinksTable">
+                <i class="fas fa-chevron-down" id="toggleIcon"></i>
+                <span id="toggleText">Показать таблицу</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Форма создания -->
+          <form method="post" class="row g-2 align-items-end mb-3">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="col-lg-6">
+              <label class="form-label">Оригинальная ссылка</label>
+              <input type="text" name="create_shortlink_url" class="form-control" placeholder="https://example.com/path">
+            </div>
+            <div class="col-lg-2">
+              <label class="form-label">Срок</label>
+              <select name="create_shortlink_ttl" class="form-select">
+                <option value="">Без ограничения</option>
+                <option value="3h">3 часа</option>
+                <option value="6h">6 часов</option>
+              </select>
+            </div>
+            <div class="col-lg-2">
+              <label class="form-label">Лимит</label>
+              <select name="create_shortlink_max_clicks" class="form-select">
+                <option value="">Без лимита</option>
+                <option value="1">1</option>
+                <option value="3">3</option>
+                <option value="5">5</option>
+              </select>
+            </div>
+            <div class="col-lg-2 d-grid">
+              <button type="submit" class="btn btn-primary"><i class="fas fa-plus me-1"></i>Создать</button>
+            </div>
+          </form>
+
+          <!-- Таблица ссылок -->
+          <div class="collapse" id="shortlinksTable">
+            <div class="table-responsive">
+              <table class="table table-hover mb-0">
+                <thead style="background: #2a2a2a;">
+                  <tr>
+                    <th>ID</th>
+                    <th>Код</th>
+                    <th>Оригинал</th>
+                    <th>Клики</th>
+                    <th>Срок</th>
+                    <th>Лимит</th>
+                    <th>Создана</th>
+                    <th>Действия</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for sl in short_links %}
+                  <tr>
+                    <td><span class="badge bg-secondary">{{ sl.id }}</span></td>
+                    <td><a href="{{ url_for('main.resolve_shortlink', code=sl.code, _external=True) }}" target="_blank">{{ sl.code }}</a></td>
+                    <td style="max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                      <a href="{{ sl.original_url }}" target="_blank" class="text-decoration-none">{{ sl.original_url }}</a>
+                    </td>
+                    <td>{{ sl.clicks }}</td>
+                    <td>
+                      {% if sl.rule and sl.rule.expires_at %}
+                        {{ sl.rule.expires_at.strftime('%d.%m.%Y %H:%M') }}
+                      {% else %}
+                        —
+                      {% endif %}
+                    </td>
+                    <td>
+                      {% if sl.rule and sl.rule.max_clicks is not none %}
+                        {{ sl.rule.max_clicks }}
+                      {% else %}—{% endif %}
+                    </td>
+                    <td>{{ sl.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                    <td>
+                      <div class="d-flex gap-1">
+                        <!-- Сброс кликов -->
+                        <form method="post">
+                          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                          <input type="hidden" name="reset_clicks_shortlink_id" value="{{ sl.id }}">
+                          <button type="submit" class="btn btn-sm btn-warning" title="Сбросить счётчик"><i class="fas fa-undo"></i></button>
+                        </form>
+                        <!-- Обновление правил -->
+                        <form method="post" class="d-flex gap-1">
+                          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                          <input type="hidden" name="update_shortlink_id" value="{{ sl.id }}">
+                          <select name="update_shortlink_ttl" class="form-select form-select-sm" style="width: 130px;">
+                            <option value="">Без срока</option>
+                            <option value="3h">3 часа</option>
+                            <option value="6h">6 часов</option>
+                          </select>
+                          <select name="update_shortlink_max_clicks" class="form-select form-select-sm" style="width: 110px;">
+                            <option value="">Без лимита</option>
+                            <option value="1">1</option>
+                            <option value="3">3</option>
+                            <option value="5">5</option>
+                          </select>
+                          <button type="submit" class="btn btn-sm btn-success" title="Обновить"><i class="fas fa-save"></i></button>
+                        </form>
+                        <!-- Удаление -->
+                        <form method="post" onsubmit="return confirm('Удалить ссылку {{ sl.code }}?')">
+                          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                          <input type="hidden" name="delete_shortlink_id" value="{{ sl.id }}">
+                          <button type="submit" class="btn btn-sm btn-danger" title="Удалить"><i class="fas fa-trash"></i></button>
+                        </form>
+                      </div>
+                    </td>
+                  </tr>
+                  {% else %}
+                  <tr>
+                    <td colspan="8" class="text-center text-muted py-4">
+                      <i class="fas fa-link fa-2x mb-2"></i>
+                      <div>Пока нет коротких ссылок</div>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Принудительное применение темной темы для таблицы */
+.table {
+  background-color: #1a1a1a !important;
+  color: #ffffff !important;
+}
+
+.table tbody tr {
+  background-color: #1a1a1a !important;
+  color: #ffffff !important;
+}
+
+.table tbody tr:hover {
+  background-color: #2a2a2a !important;
+  color: #ffffff !important;
+}
+
+.table td, .table th {
+  background-color: #1a1a1a !important;
+  color: #ffffff !important;
+  border-color: #3a3a3a !important;
+}
+
+.table thead th {
+  background-color: #2a2a2a !important;
+  color: #ffffff !important;
+  border-color: #3a3a3a !important;
+}
+
+/* Стили для формы */
+.form-control {
+  background-color: #0e0e0f !important;
+  border: 1px solid #3a3a3a !important;
+  color: #ffffff !important;
+  border-radius: 20px !important;
+}
+
+.form-control:focus {
+  background-color: #0e0e0f !important;
+  border-color: #007bff !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25) !important;
+}
+
+.form-label {
+  color: #ffffff !important;
+}
+
+/* Принудительное удаление скругления у кнопок действий */
+.btn {
+  border-radius: 0 !important;
+}
+
+.btn-group .btn {
+  border-radius: 0 !important;
+}
+
+/* Специально для кнопок в сетке */
+.d-grid .btn {
+  border-radius: 0 !important;
+}
+
+/* Улучшенные стили для кнопок в таблице коротких ссылок */
+.table .btn {
+  border-radius: 8px !important;
+  border: none !important;
+  padding: 6px 12px !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  min-width: 32px !important;
+  height: 32px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.table .btn:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+.table .btn:active {
+  transform: translateY(0) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Стили для кнопки сброса (желтая) */
+.table .btn-warning {
+  background: linear-gradient(135deg, #ffc107, #ffb300) !important;
+  color: #212529 !important;
+}
+
+.table .btn-warning:hover {
+  background: linear-gradient(135deg, #ffb300, #ffa000) !important;
+  color: #212529 !important;
+}
+
+/* Стили для кнопки сохранения (зеленая) */
+.table .btn-success {
+  background: linear-gradient(135deg, #28a745, #20c997) !important;
+  color: #ffffff !important;
+}
+
+.table .btn-success:hover {
+  background: linear-gradient(135deg, #20c997, #17a2b8) !important;
+  color: #ffffff !important;
+}
+
+/* Стили для кнопки удаления (красная) */
+.table .btn-danger {
+  background: linear-gradient(135deg, #dc3545, #c82333) !important;
+  color: #ffffff !important;
+}
+
+.table .btn-danger:hover {
+  background: linear-gradient(135deg, #c82333, #bd2130) !important;
+  color: #ffffff !important;
+}
+
+/* Стили для select элементов в таблице */
+.table .form-select {
+  border-radius: 6px !important;
+  border: 1px solid #3a3a3a !important;
+  background-color: #2a2a2a !important;
+  color: #ffffff !important;
+  font-size: 12px !important;
+  padding: 4px 8px !important;
+  height: 32px !important;
+  transition: all 0.2s ease !important;
+}
+
+.table .form-select:focus {
+  border-color: #007bff !important;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25) !important;
+  background-color: #2a2a2a !important;
+}
+
+.table .form-select:hover {
+  border-color: #4a4a4a !important;
+  background-color: #2f2f2f !important;
+}
+
+/* Стили для контейнера кнопок в таблице */
+.table .d-flex.gap-1 {
+  gap: 6px !important;
+  align-items: center !important;
+}
+
+/* Дополнительные стили для иконок в кнопках */
+.table .btn i {
+  font-size: 11px !important;
+  line-height: 1 !important;
+}
+
+/* Стили для кнопки сворачивания таблицы */
+.btn-outline-secondary {
+  background-color: transparent !important;
+  border-color: #6c757d !important;
+  color: #6c757d !important;
+  border-radius: 6px !important;
+  transition: all 0.2s ease !important;
+  padding: 6px 12px !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+.btn-outline-secondary:hover {
+  background-color: #6c757d !important;
+  border-color: #6c757d !important;
+  color: #ffffff !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+.btn-outline-secondary:focus {
+  background-color: #6c757d !important;
+  border-color: #6c757d !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.25) !important;
+}
+
+/* Анимация для иконки сворачивания */
+.fas.fa-chevron-down,
+.fas.fa-chevron-up {
+  transition: transform 0.3s ease;
+}
+
+/* Стили для collapsed таблицы */
+.collapse {
+  transition: all 0.3s ease;
+}
+
+.collapse:not(.show) {
+  display: none;
+}
+
+.collapsing {
+  height: 0;
+  overflow: hidden;
+  transition: height 0.35s ease;
+}
+</style>
+
+<script>
+// Инициализация tooltips
+document.addEventListener('DOMContentLoaded', function() {
+  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+  var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl)
+  })
+  
+  // Инициализация функциональности сворачивания таблицы коротких ссылок
+  const toggleButton = document.getElementById('toggleShortlinksTable');
+  const toggleIcon = document.getElementById('toggleIcon');
+  const toggleText = document.getElementById('toggleText');
+  const shortlinksTable = document.getElementById('shortlinksTable');
+  
+  if (toggleButton && toggleIcon && toggleText && shortlinksTable) {
+    // Обработчик события сворачивания/разворачивания
+    shortlinksTable.addEventListener('show.bs.collapse', function() {
+      toggleIcon.className = 'fas fa-chevron-up';
+      toggleText.textContent = 'Скрыть таблицу';
+    });
+    
+    shortlinksTable.addEventListener('hide.bs.collapse', function() {
+      toggleIcon.className = 'fas fa-chevron-down';
+      toggleText.textContent = 'Показать таблицу';
+    });
+    
+    // Проверяем, была ли таблица развернута ранее (из localStorage)
+    const wasExpanded = localStorage.getItem('shortlinksTableExpanded') === 'true';
+    if (wasExpanded) {
+      // Программно разворачиваем таблицу
+      const bsCollapse = new bootstrap.Collapse(shortlinksTable, {
+        show: true
+      });
+    }
+    
+    // Сохраняем состояние в localStorage при изменении
+    shortlinksTable.addEventListener('shown.bs.collapse', function() {
+      localStorage.setItem('shortlinksTableExpanded', 'true');
+    });
+    
+    shortlinksTable.addEventListener('hidden.bs.collapse', function() {
+      localStorage.setItem('shortlinksTableExpanded', 'false');
+    });
+  }
+});
+
+// Функция для копирования пароля в буфер обмена
+function copyPassword(password) {
+  // Создаем временный элемент input
+  const tempInput = document.createElement('input');
+  tempInput.value = password;
+  document.body.appendChild(tempInput);
+  
+  // Выделяем и копируем текст
+  tempInput.select();
+  tempInput.setSelectionRange(0, 99999); // Для мобильных устройств
+  
+  try {
+    // Пытаемся использовать современный Clipboard API
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(password).then(function() {
+        showCopyNotification('Пароль скопирован!');
+      }).catch(function(err) {
+        // Fallback для старых браузеров
+        fallbackCopyTextToClipboard(password);
+      });
+    } else {
+      // Fallback для старых браузеров
+      fallbackCopyTextToClipboard(password);
+    }
+  } catch (err) {
+    // Fallback для старых браузеров
+    fallbackCopyTextToClipboard(password);
+  }
+  
+  // Удаляем временный элемент
+  document.body.removeChild(tempInput);
+}
+
+// Fallback функция для копирования в старых браузерах
+function fallbackCopyTextToClipboard(text) {
+  const textArea = document.createElement('textarea');
+  textArea.value = text;
+  textArea.style.top = '0';
+  textArea.style.left = '0';
+  textArea.style.position = 'fixed';
+  document.body.appendChild(textArea);
+  textArea.focus();
+  textArea.select();
+  
+  try {
+    const successful = document.execCommand('copy');
+    if (successful) {
+      showCopyNotification('Пароль скопирован!');
+    } else {
+      showCopyNotification('Ошибка копирования', 'error');
+    }
+  } catch (err) {
+    showCopyNotification('Ошибка копирования', 'error');
+  }
+  
+  document.body.removeChild(textArea);
+}
+
+// Функция для показа уведомления о копировании
+function showCopyNotification(message, type = 'success') {
+  // Создаем элемент уведомления
+  const notification = document.createElement('div');
+  notification.className = `alert alert-${type === 'success' ? 'success' : 'danger'} position-fixed`;
+  notification.style.cssText = `
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    min-width: 200px;
+    padding: 10px 15px;
+    border-radius: 5px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    animation: slideIn 0.3s ease-out;
+  `;
+  notification.innerHTML = `
+    <i class="fas fa-${type === 'success' ? 'check' : 'exclamation-triangle'} me-2"></i>
+    ${message}
+  `;
+  
+  // Добавляем стили для анимации
+  if (!document.getElementById('copy-notification-styles')) {
+    const style = document.createElement('style');
+    style.id = 'copy-notification-styles';
+    style.textContent = `
+      @keyframes slideIn {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      @keyframes slideOut {
+        from {
+          transform: translateX(0);
+          opacity: 1;
+        }
+        to {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+  
+  // Добавляем уведомление на страницу
+  document.body.appendChild(notification);
+  
+  // Удаляем уведомление через 3 секунды
+  setTimeout(function() {
+    notification.style.animation = 'slideOut 0.3s ease-in';
+    setTimeout(function() {
+      if (notification.parentNode) {
+        notification.parentNode.removeChild(notification);
+      }
+    }, 300);
+  }, 3000);
+}
+</script>
+
+<!-- Модальные окна для изменения группы пользователя -->
+{% for user in users %}
+<div class="modal fade" id="changeGroupModal{{ user.id }}" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content" style="background: #1a1a1a; border: 1px solid #3a3a3a;">
+      <div class="modal-header" style="border-bottom: 1px solid #3a3a3a;">
+        <h5 class="modal-title" style="color: #ffffff;">Изменить группу пользователя {{ user.username }}</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="post">
+        <div class="modal-body">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="change_group_user_id" value="{{ user.id }}">
+          <div class="mb-3">
+            <label class="form-label" style="color: #ffffff;">Выберите группу</label>
+            <select name="new_group_id" class="form-control" required
+                    style="background: #0e0e0f; border: 1px solid #3a3a3a; color: #ffffff;">
+              <option value="">Без группы</option>
+              {% for group in groups %}
+                <option value="{{ group.id }}" 
+                        {% if user.group and user.group.id == group.id %}selected{% endif %}>
+                  {{ group.name }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer" style="border-top: 1px solid #3a3a3a;">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+          <button type="submit" class="btn btn-primary">Сохранить</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endfor %}
+{% endblock %} 

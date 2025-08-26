@@ -1,0 +1,269 @@
+{% extends 'base.html' %}
+{% block title %}Админка: Предметы по группам{% endblock %}
+
+{% block content %}
+<div class="container-fluid admin-subject-groups">
+  <!-- Заголовок -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">Предметы по группам</h2>
+    <span class="badge bg-primary fs-6">{{ subjects|length }} предметов</span>
+  </div>
+
+  <div class="row g-4">
+    <!-- Назначение предмета группам -->
+    <div class="col-lg-4">
+      <div class="card shadow-sm border-0" style="background: #1a1a1a; height: fit-content;">
+        <div class="card-body">
+          <h5 class="card-title mb-3">
+            <i class="fas fa-link me-2 text-primary"></i>Назначить предмет группам
+          </h5>
+          <form method="post">
+            {{ form.hidden_tag() }}
+            <div class="mb-3">
+              <label for="{{ form.subject_id.id }}" class="form-label">Предмет</label>
+              {{ form.subject_id(class_='form-control', style='background: #0e0e0f; border: 1px solid #3a3a3a; color: #ffffff; border-radius: 20px;') }}
+              {% if form.subject_id.errors %}
+                <div class="text-danger small">
+                  {% for error in form.subject_id.errors %}
+                    {{ error }}
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+            <div class="mb-3">
+              <label for="{{ form.group_ids.id }}" class="form-label">Группы</label>
+              {{ form.group_ids(class_='form-control custom-scrollbar', size=6, style='background: #0e0e0f; border: 1px solid #3a3a3a; color: #ffffff; border-radius: 20px; min-height: 120px;') }}
+              <small class="text-muted">Используйте Ctrl+клик для выбора нескольких групп</small>
+              {% if form.group_ids.errors %}
+                <div class="text-danger small">
+                  {% for error in form.group_ids.errors %}
+                    {{ error }}
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+            <button type="submit" name="submit" value="Сохранить" class="btn btn-primary text-white w-100" style="color: #fff !important; border-radius: 20px;">
+              <i class="fas fa-save me-2"></i>Назначить группам
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Список предметов с их группами -->
+    <div class="col-lg-8">
+      <div class="card shadow-sm border-0" style="background: #1a1a1a;">
+        <div class="card-body p-0">
+          <div class="table-responsive" style="border-radius: 14px;">
+            <table class="table table-hover mb-0" style="background: #1a1a1a; color: #ffffff;">
+              <thead style="background: #2a2a2a;">
+                <tr>
+                  <th class="border-0" style="color: #ffffff;">Предмет</th>
+                  <th class="border-0" style="color: #ffffff;">Группы</th>
+                  <th class="border-0" style="color: #ffffff;">Материалов</th>
+                  <th class="border-0" style="color: #ffffff;">Действия</th>
+                </tr>
+              </thead>
+              <tbody style="background: #1a1a1a;">
+                {% if subjects %}
+                  {% for subject in subjects %}
+                  <tr style="border-color: #3a3a3a; background: #1a1a1a; color: #ffffff;">
+                    <td style="color: #ffffff;">
+                      <strong>{{ subject.title }}</strong>
+                      {% if subject.description %}
+                        <br><small class="text-muted">{{ subject.description[:50] }}{% if subject.description|length > 50 %}...{% endif %}</small>
+                      {% endif %}
+                    </td>
+                    <td style="color: #ffffff;">
+                      {% if subject.groups %}
+                        {% for subject_group in subject.groups %}
+                          <span class="badge bg-primary me-1 mb-1">{{ subject_group.group.name }}</span>
+                        {% endfor %}
+                      {% else %}
+                        <span class="text-muted">Не назначен ни одной группе</span>
+                      {% endif %}
+                    </td>
+                    <td style="color: #ffffff;">
+                      <span class="badge bg-info">{{ subject.materials|length }}</span>
+                    </td>
+                    <td style="color: #ffffff;">
+                      <div class="d-flex gap-1">
+                        <!-- Редактирование групп предмета -->
+                        <button type="button" class="btn btn-primary btn-sm" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#editSubjectGroupsModal{{ subject.id }}"
+                                style="font-size: 0.7rem; padding: 0.25rem 0.5rem;">
+                          <i class="fas fa-edit"></i>
+                        </button>
+                        
+                        <!-- Удаление всех связей с группами -->
+                        {% if subject.groups %}
+                          <form method="post" style="display: inline;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="remove_all_groups" value="{{ subject.id }}">
+                            <button type="submit" class="btn btn-warning btn-sm" 
+                                    onclick="return confirm('Убрать предмет {{ subject.title }} из всех групп?')"
+                                    style="font-size: 0.7rem; padding: 0.25rem 0.5rem;">
+                              <i class="fas fa-unlink"></i>
+                            </button>
+                          </form>
+                        {% endif %}
+                      </div>
+                    </td>
+                  </tr>
+                  
+                  <!-- Модальное окно редактирования групп предмета -->
+                  <div class="modal fade" id="editSubjectGroupsModal{{ subject.id }}" tabindex="-1">
+                    <div class="modal-dialog">
+                      <div class="modal-content" style="background: #1a1a1a; border: 1px solid #3a3a3a;">
+                        <div class="modal-header" style="border-bottom: 1px solid #3a3a3a;">
+                          <h5 class="modal-title" style="color: #ffffff;">Группы для предмета "{{ subject.title }}"</h5>
+                          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <form method="post">
+                          <div class="modal-body">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="edit_subject_id" value="{{ subject.id }}">
+                            <div class="mb-3">
+                              <label class="form-label" style="color: #ffffff;">Выберите группы</label>
+                              <select name="edit_group_ids" multiple class="form-control custom-scrollbar" size="6" required
+                                      style="background: #0e0e0f; border: 1px solid #3a3a3a; color: #ffffff; min-height: 120px;">
+                                {% for group in groups %}
+                                  <option value="{{ group.id }}" 
+                                          {% if group.id in subject.groups|map(attribute='group_id')|list %}selected{% endif %}>
+                                    {{ group.name }}
+                                  </option>
+                                {% endfor %}
+                              </select>
+                              <small class="text-muted">Используйте Ctrl+клик для выбора нескольких групп</small>
+                            </div>
+                          </div>
+                          <div class="modal-footer" style="border-top: 1px solid #3a3a3a;">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                            <button type="submit" class="btn btn-primary">Сохранить</button>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                  {% endfor %}
+                {% else %}
+                  <tr style="background: #1a1a1a; color: #ffffff;">
+                    <td colspan="4" class="text-center text-muted py-4" style="color: #ffffff;">
+                      <i class="fas fa-book fa-2x mb-3"></i>
+                      <p>Нет предметов</p>
+                    </td>
+                  </tr>
+                {% endif %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block head %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Улучшение работы с select элементами
+    const multiSelects = document.querySelectorAll('select[multiple]');
+    
+    multiSelects.forEach(select => {
+        // Добавляем индикатор количества выбранных элементов
+        const label = select.previousElementSibling;
+        if (label && label.tagName === 'LABEL') {
+            const counter = document.createElement('span');
+            counter.className = 'selected-count ms-2 badge bg-secondary';
+            counter.textContent = '0 выбрано';
+            label.appendChild(counter);
+            
+            // Обновляем счетчик при изменении выбора
+            function updateCounter() {
+                const selectedCount = select.selectedOptions.length;
+                counter.textContent = `${selectedCount} выбрано`;
+                counter.className = `selected-count ms-2 badge ${selectedCount > 0 ? 'bg-primary' : 'bg-secondary'}`;
+            }
+            
+            select.addEventListener('change', updateCounter);
+            updateCounter(); // Инициализация
+        }
+        
+        // Добавляем кнопку "Выбрать все" и "Снять выбор"
+        const selectContainer = select.parentElement;
+        const buttonGroup = document.createElement('div');
+        buttonGroup.className = 'd-flex gap-2 mt-2';
+        
+        const selectAllBtn = document.createElement('button');
+        selectAllBtn.type = 'button';
+        selectAllBtn.className = 'btn btn-sm btn-outline-primary';
+        selectAllBtn.textContent = 'Выбрать все';
+        selectAllBtn.onclick = () => {
+            Array.from(select.options).forEach(option => option.selected = true);
+            select.dispatchEvent(new Event('change'));
+        };
+        
+        const deselectAllBtn = document.createElement('button');
+        deselectAllBtn.type = 'button';
+        deselectAllBtn.className = 'btn btn-sm btn-outline-secondary';
+        deselectAllBtn.textContent = 'Снять выбор';
+        deselectAllBtn.onclick = () => {
+            Array.from(select.options).forEach(option => option.selected = false);
+            select.dispatchEvent(new Event('change'));
+        };
+        
+        buttonGroup.appendChild(selectAllBtn);
+        buttonGroup.appendChild(deselectAllBtn);
+        selectContainer.appendChild(buttonGroup);
+        
+        // Добавляем поиск по опциям
+        const searchContainer = document.createElement('div');
+        searchContainer.className = 'mb-2';
+        
+        const searchInput = document.createElement('input');
+        searchInput.type = 'text';
+        searchInput.className = 'form-control form-control-sm';
+        searchInput.placeholder = 'Поиск групп...';
+        searchInput.style.cssText = 'background: #0e0e0f; border: 1px solid #3a3a3a; color: #ffffff; border-radius: 10px;';
+        
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            Array.from(select.options).forEach(option => {
+                const text = option.text.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    option.style.display = '';
+                    option.disabled = false;
+                } else {
+                    option.style.display = 'none';
+                    option.disabled = true;
+                }
+            });
+        });
+        
+        searchContainer.appendChild(searchInput);
+        selectContainer.insertBefore(searchContainer, select);
+    });
+    
+    // Улучшение UX для модальных окон
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(modal => {
+        modal.addEventListener('shown.bs.modal', function() {
+            const searchInput = this.querySelector('input[type="text"]');
+            if (searchInput) {
+                searchInput.focus();
+            }
+        });
+        
+        modal.addEventListener('hidden.bs.modal', function() {
+            const searchInput = this.querySelector('input[type="text"]');
+            if (searchInput) {
+                searchInput.value = '';
+                searchInput.dispatchEvent(new Event('input'));
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

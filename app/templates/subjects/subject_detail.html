@@ -1,0 +1,248 @@
+{% extends 'base.html' %}
+{% block title %}{{ subject.title }}{% endblock %}
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}" class="text-decoration-none">Главная</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ subject.title }}</li>
+  </ol>
+</nav>
+
+<div class="card mb-4">
+  <div class="card-body">
+    <div class="d-flex justify-content-between align-items-start">
+      <div>
+        <h2 class="mb-2">{{ subject.title }}</h2>
+        <p class="text-muted mb-0">{{ subject.description }}</p>
+      </div>
+      {% if current_user.is_authenticated and current_user.is_admin %}
+        <form method="post" action="{{ url_for('main.delete_subject', subject_id=subject.id) }}" style="margin:0;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Удалить предмет?')">
+            <i class="fas fa-trash me-1"></i>Удалить
+          </button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% if current_user.is_authenticated and current_user.is_admin %}
+<!-- Кнопка для открытия модального окна -->
+<div class="d-flex justify-content-end mb-3">
+  <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addMaterialModal" style="padding: 4px 12px !important; font-size: 0.85rem;">Добавить материал</button>
+</div>
+<!-- Модальное окно -->
+<div class="modal fade" id="addMaterialModal" tabindex="-1" aria-labelledby="addMaterialModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addMaterialModalLabel">Добавить материал</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post" enctype="multipart/form-data">
+        <div class="modal-body">
+          {{ form.hidden_tag() }}
+          <div class="mb-3">
+            <label class="form-label">{{ form.title.label }}</label>
+            {{ form.title(class_='form-control') }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">{{ form.description.label }}</label>
+            {{ form.description(class_='form-control', style='min-height: 60px; resize: vertical;') }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">{{ form.file.label }}</label>
+            {{ form.file(class_='form-control') }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">{{ form.type.label }}</label>
+            {{ form.type(class_='form-select', id='type-select') }}
+          </div>
+          <div class="mb-3" id="solution-file-group" style="display:none;">
+            <label class="form-label">{{ form.solution_file.label }}</label>
+            {{ form.solution_file(class_='form-control') }}
+          </div>
+          {{ form.subject_id(class_='d-none') }}
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+          <button type="submit" class="btn btn-primary">Сохранить</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+  $(document).ready(function() {
+    function toggleSolutionFile() {
+      // Убираем показ поля готового решения для заданий
+      $('#solution-file-group').hide();
+    }
+    $('#type-select').on('change', toggleSolutionFile);
+    toggleSolutionFile();
+  });
+</script>
+{% endif %}
+<div class="row">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-book me-2"></i>Лекции</h5>
+      </div>
+      <div class="card-body p-0">
+        {% if lectures %}
+          <div class="list-group list-group-flush">
+            {% for material in lectures %}
+            <div class="list-group-item" style="padding: 12px 16px;">
+              <div class="d-flex justify-content-between align-items-center">
+                <div class="flex-grow-1 me-3">
+                  <div class="d-flex align-items-center mb-1">
+                    <a href="{{ url_for('main.material_detail', material_id=material.id) }}" class="text-decoration-none text-white fw-medium" style="font-size: 0.95rem;">{{ material.title }}</a>
+                  </div>
+                  {% if material.description %}
+                    <div class="text-muted" style="font-size: 0.85rem; line-height: 1.3;">{{ material.description[:60] }}{% if material.description|length > 60 %}...{% endif %}</div>
+                  {% endif %}
+                </div>
+                <div class="d-flex align-items-center gap-1" style="flex-shrink: 0;">
+                  {% if material.file %}
+                  <a href="{{ url_for('static', filename='uploads/' + material.file) }}" class="btn btn-sm btn-outline-primary" target="_blank" style="padding: 4px 8px; font-size: 0.8rem; border-radius: 6px;">
+                    <i class="fas fa-download me-1"></i>Файл
+                  </a>
+                  {% endif %}
+                  {% if current_user.is_authenticated and current_user.is_admin %}
+                  <form method="post" action="{{ url_for('main.delete_material', material_id=material.id) }}" style="display:inline; margin: 0;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Удалить материал?')" style="padding: 4px 6px; font-size: 0.8rem; border-radius: 6px;">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </form>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-center py-4">
+            <i class="fas fa-book-open fa-2x text-muted mb-2"></i>
+            <p class="text-muted mb-0">Нет лекций</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-tasks me-2"></i>Практики</h5>
+      </div>
+      <div class="card-body p-0">
+        {% if assignments %}
+          <div class="list-group list-group-flush">
+            {% for material in assignments %}
+            <div class="list-group-item" style="padding: 12px 16px;">
+              <div class="d-flex justify-content-between align-items-center">
+                <div class="flex-grow-1 me-3">
+                  <div class="d-flex align-items-center mb-1">
+                    <a href="{{ url_for('main.material_detail', material_id=material.id) }}" class="text-decoration-none text-white fw-medium" style="font-size: 0.95rem;">{{ material.title }}</a>
+                  </div>
+                  {% if material.description %}
+                    <div class="text-muted" style="font-size: 0.85rem; line-height: 1.3;">{{ material.description[:60] }}{% if material.description|length > 60 %}...{% endif %}</div>
+                  {% endif %}
+                </div>
+                <div class="d-flex align-items-center gap-1" style="flex-shrink: 0;">
+                  {% if material.file %}
+                  <a href="{{ url_for('static', filename='uploads/' + material.file) }}" class="btn btn-sm btn-outline-primary" target="_blank" style="padding: 4px 8px; font-size: 0.8rem; border-radius: 6px;">
+                    <i class="fas fa-download me-1"></i>Файл
+                  </a>
+                  {% endif %}
+                  {% if current_user.is_authenticated %}
+                    {% set my_submission = user_submissions.get(material.id) %}
+                    {% if my_submission and my_submission.file %}
+                      <a href="{{ url_for('static', filename='uploads/' + my_submission.file) }}" class="btn btn-sm btn-success" target="_blank" style="padding: 4px 8px; font-size: 0.8rem; border-radius: 6px; text-decoration: none; color: white;">
+                        <i class="fas fa-check me-1"></i>Моё решение
+                      </a>
+                    {% else %}
+                      <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#submitSolutionModal{{ material.id }}" style="padding: 4px 8px; font-size: 0.8rem; border-radius: 6px;">
+                        <i class="fas fa-upload me-1"></i>Загрузить
+                      </button>
+                    {% endif %}
+                  {% endif %}
+                  {% if current_user.is_authenticated and current_user.is_admin %}
+                  <form method="post" action="{{ url_for('main.delete_material', material_id=material.id) }}" style="display:inline; margin: 0;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Удалить материал?')" style="padding: 4px 6px; font-size: 0.8rem; border-radius: 6px;">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </form>
+                  {% endif %}
+                </div>
+              </div>
+              
+
+            </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-center py-4">
+            <i class="fas fa-tasks fa-2x text-muted mb-2"></i>
+            <p class="text-muted mb-0">Нет практик</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Модальные окна для загрузки решений -->
+{% if current_user.is_authenticated %}
+  {% for material in assignments %}
+    <div class="modal fade" id="submitSolutionModal{{ material.id }}" tabindex="-1" aria-labelledby="submitSolutionModalLabel{{ material.id }}" aria-hidden="true" style="z-index: 1050;">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="submitSolutionModalLabel{{ material.id }}">Загрузить решение</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <form method="post" action="{{ url_for('main.submit_solution', material_id=material.id) }}" enctype="multipart/form-data">
+            <div class="modal-body">
+              <div class="mb-3">
+                <label class="form-label">Выберите файл решения</label>
+                <input type="file" name="solution_file" class="form-control" required>
+              </div>
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+              <button type="submit" class="btn btn-primary">Загрузить</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+{% endif %}
+
+<script>
+// Дополнительная проверка работы модальных окон
+document.addEventListener('DOMContentLoaded', function() {
+    // Убеждаемся, что модальные окна правильно инициализированы
+    var modals = document.querySelectorAll('.modal');
+    modals.forEach(function(modal) {
+        modal.addEventListener('show.bs.modal', function() {
+            // Устанавливаем правильный z-index при открытии
+            this.style.zIndex = '1050';
+            var backdrop = document.querySelector('.modal-backdrop');
+            if (backdrop) {
+                backdrop.style.zIndex = '1040';
+            }
+        });
+    });
+});
+</script>
+
+{% endblock %} 
