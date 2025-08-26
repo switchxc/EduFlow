@@ -12,6 +12,7 @@
 # Логи
 *.log
 logs/
+err.log
 
 # Кэш Python
 __pycache__/
@@ -71,3 +72,26 @@ config.py
 *.json
 instance/
 for_my_love/
+
+# Дополнительные файлы
+*.bak
+*.backup
+*.old
+*.orig
+*.rej
+*.swp
+*.swo
+*~
+
+# Системные файлы
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Локальные настройки
+local_settings.py
+local_config.py
