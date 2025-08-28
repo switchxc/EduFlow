@@ -681,9 +681,178 @@
             outline: none;
             box-shadow: 0 0 0 2px var(--accent-blue);
         }
+        
+        /* Стили для overlay технических работ */
+        .maintenance-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .maintenance-overlay .maintenance-icon {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        /* Стили для мобильного меню админки */
+        @media (max-width: 768px) {
+            /* Стили для мобильных пунктов меню админки */
+            .navbar-nav .nav-item.d-lg-none .nav-link {
+                padding: 0.75rem 1rem;
+                margin: 0.25rem 0;
+                border-radius: 8px;
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                transition: all 0.2s ease;
+            }
+            
+            .navbar-nav .nav-item.d-lg-none .nav-link:hover {
+                background: rgba(255, 255, 255, 0.1);
+                border-color: rgba(255, 255, 255, 0.2);
+                transform: translateX(5px);
+            }
+            
+            /* Добавляем разделитель перед мобильным меню админки */
+            .navbar-nav .nav-item.d-lg-none:first-of-type::before {
+                content: '';
+                display: block;
+                height: 1px;
+                background: rgba(255, 255, 255, 0.2);
+                margin: 1rem 0;
+            }
+            
+            /* Стили для dropdown меню на десктопе */
+            .dropdown-menu {
+                position: static !important;
+                float: none;
+                width: 100%;
+                margin-top: 0.5rem;
+                border: none;
+                background: transparent !important;
+                box-shadow: none;
+            }
+            
+            .dropdown-menu .dropdown-item {
+                padding: 0.5rem 1rem;
+                color: #ffffff !important;
+                background: rgba(255, 255, 255, 0.1);
+                margin-bottom: 0.25rem;
+                border-radius: 8px;
+                transition: background-color 0.2s ease;
+            }
+            
+            .dropdown-menu .dropdown-item:hover {
+                background: rgba(255, 255, 255, 0.2) !important;
+                color: #ffffff !important;
+            }
+            
+            .dropdown-menu .dropdown-divider {
+                border-color: rgba(255, 255, 255, 0.2);
+                margin: 0.5rem 0;
+            }
+            
+            /* Предотвращаем закрытие navbar при клике на dropdown */
+            .navbar-nav .dropdown-menu {
+                position: static !important;
+                transform: none !important;
+            }
+        }
+        
+        /* Стили для десктопного dropdown меню админки */
+        @media (min-width: 769px) {
+            .dropdown-menu {
+                min-width: 220px;
+                padding: 0.5rem 0;
+                margin-top: 0.5rem;
+                border: 1px solid #3a3a3a;
+                border-radius: 12px;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            }
+            
+            .dropdown-menu .dropdown-item {
+                padding: 0.5rem 1rem;
+                color: #ffffff !important;
+                font-size: 0.9rem;
+                transition: all 0.2s ease;
+                border-radius: 0;
+                margin: 0;
+            }
+            
+            .dropdown-menu .dropdown-item:hover {
+                background: rgba(255, 255, 255, 0.1) !important;
+                color: #ffffff !important;
+                transform: translateX(3px);
+            }
+            
+            .dropdown-menu .dropdown-item:active {
+                background: rgba(255, 255, 255, 0.15) !important;
+                color: #ffffff !important;
+            }
+            
+            .dropdown-menu .dropdown-divider {
+                border-color: #3a3a3a;
+                margin: 0.25rem 0;
+            }
+            
+            /* Иконки в dropdown */
+            .dropdown-menu .dropdown-item i {
+                width: 16px;
+                margin-right: 0.75rem;
+                text-align: center;
+            }
+            
+            /* Анимация появления dropdown */
+            .dropdown-menu.show {
+                animation: dropdownFadeIn 0.2s ease-out;
+            }
+            
+            @keyframes dropdownFadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(-10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+        }
     </style>
 </head>
 <body>
+{% if maintenance_mode and (not current_user.is_authenticated or not current_user.is_admin) %}
+    <div class="maintenance-overlay">
+        <div class="text-center text-white p-5">
+            <div class="maintenance-icon mb-4">
+                <i class="fas fa-tools fa-4x text-warning"></i>
+            </div>
+            <h1 class="mb-3">Технические работы</h1>
+            <p class="lead mb-4">Сайт временно недоступен из-за проведения технических работ.</p>
+            <p class="text-muted">Мы работаем над улучшением функциональности и скоро вернемся к работе.</p>
+            {% if current_user.is_authenticated and current_user.is_admin %}
+                <div class="mt-4">
+                    <small class="text-info">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Администратор может продолжать работу
+                    </small>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endif %}
+
 <nav class="navbar navbar-expand-lg navbar-dark mb-2">
     <div class="container">
         <div class="navbar-brand d-flex align-items-center">
@@ -713,6 +882,20 @@
                                 <i class="fas fa-crown d-lg-none me-2"></i>Подписка
                             </a>
                         </li>
+                    {% else %}
+                        {% if trial_info and trial_info.is_trial %}
+                            <li class="nav-item">
+                                <a class="nav-link text-info" href="{{ url_for('main.subscription') }}" title="Пробная подписка активна">
+                                    <i class="fas fa-crown d-lg-none me-2"></i>Пробная подписка
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="nav-item">
+                                <a class="nav-link text-success" href="{{ url_for('main.subscription') }}" title="Подписка активна">
+                                    <i class="fas fa-crown d-lg-none me-2"></i>Подписка
+                                </a>
+                            </li>
+                        {% endif %}
                     {% endif %}
                     {% if current_user.is_admin %}
                         <li class="nav-item">
@@ -720,19 +903,47 @@
                                 <i class="fas fa-ticket-alt d-lg-none me-2"></i>Тикеты
                             </a>
                         </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-cog d-lg-none me-2"></i>Админка
+                        
+                        <!-- Меню админки для мобильных устройств (всегда видимо) -->
+                        <li class="nav-item d-lg-none">
+                            <a class="nav-link" href="{{ url_for('main.admin_users') }}">
+                                <i class="fas fa-users me-2"></i>Пользователи
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="adminDropdown" style="background: #1a1a1a; border: 1px solid #3a3a3a;">
+                        </li>
+                        <li class="nav-item d-lg-none">
+                            <a class="nav-link" href="{{ url_for('main.admin_groups') }}">
+                                <i class="fas fa-layer-group me-2"></i>Группы
+                            </a>
+                        </li>
+                        <li class="nav-item d-lg-none">
+                            <a class="nav-link" href="{{ url_for('main.admin_subject_groups') }}">
+                                <i class="fas fa-link me-2"></i>Предметы по группам
+                            </a>
+                        </li>
+                        <li class="nav-item d-lg-none">
+                            <a class="nav-link" href="{{ url_for('main.admin_settings') }}">
+                                <i class="fas fa-cogs me-2"></i>Настройки
+                            </a>
+                        </li>
+                        
+                        <!-- Dropdown меню админки только для десктопных устройств -->
+                        <li class="nav-item dropdown d-none d-lg-block">
+                            <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-cog me-2"></i>Админка
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="adminDropdown">
                                 <li><a class="dropdown-item" href="{{ url_for('main.admin_users') }}">
-                                    <i class="fas fa-users me-2"></i>Пользователи
+                                    <i class="fas fa-users"></i>Пользователи
                                 </a></li>
                                 <li><a class="dropdown-item" href="{{ url_for('main.admin_groups') }}">
-                                    <i class="fas fa-layer-group me-2"></i>Группы
+                                    <i class="fas fa-layer-group"></i>Группы
                                 </a></li>
                                 <li><a class="dropdown-item" href="{{ url_for('main.admin_subject_groups') }}">
-                                    <i class="fas fa-link me-2"></i>Предметы по группам
+                                    <i class="fas fa-link"></i>Предметы по группам
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ url_for('main.admin_settings') }}">
+                                    <i class="fas fa-cogs"></i>Настройки
                                 </a></li>
                             </ul>
                         </li>
@@ -758,32 +969,44 @@
         </div>
     </div>
 </nav>
+
+
+
 <div class="container flex-grow-1 py-4" style="min-height: calc(100vh - 140px);">
+    <!-- Отладочная информация о пробной подписке -->
+    {% if current_user.is_authenticated %}
+        <!-- Debug: current_user.is_authenticated = {{ current_user.is_authenticated }} -->
+        <!-- Debug: trial_info = {{ trial_info }} -->
+        <!-- Debug: current_user.is_trial_subscription = {{ current_user.is_trial_subscription }} -->
+        <!-- Debug: current_user.trial_subscription_expires = {{ current_user.trial_subscription_expires }} -->
+    {% endif %}
+    
     {% block content %}{% endblock %}
 </div>
 
 <!-- Контейнер для всплывающих уведомлений -->
+{% if not maintenance_mode %}
 <div id="notifications-container" style="position: fixed; top: 80px; right: 20px; z-index: 9999; pointer-events: none;"></div>
+{% endif %}
 
 <!-- Футер -->
 <footer class="footer" style="margin-top: auto;">
     <div class="container">
         <!-- Верхняя секция с логотипом и соцсетями -->
         <div class="row align-items-center mb-3" style="border-bottom: 1px solid #3a3a3a; padding-bottom: 1rem;">
-            <div class="col-md-6 col-6 mb-3 mb-md-0">
-                <div class="d-flex align-items-center justify-content-center justify-content-md-start">
+            <div class="col-6 col-md-6 mb-3 mb-md-0">
+                <div class="d-flex align-items-center justify-content-start">
                     <div class="bg-primary rounded me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
                         <i class="fas fa-graduation-cap text-white"></i>
                     </div>
                     <span class="text-white fw-bold fs-5">cysu</span>
                 </div>
             </div>
-            <div class="col-md-6 col-6">
-                <div class="d-flex justify-content-center justify-content-md-end gap-2">
+            <div class="col-6 col-md-6">
+                <div class="d-flex justify-content-end gap-2">
                     {% if current_user.is_authenticated %}
-                        <button type="button" class="btn btn-outline-primary rounded d-flex align-items-center justify-content-center text-decoration-none" style="width: 95px; height: 32px; border-color: #007bff; color: #007bff; font-size: 14px; font-weight: 500;" onclick="openTicketModal()" title="Создать тикет">
-                            <i class="fas fa-ticket-alt me-1"></i>
-                            <span>Тикет</span>
+                        <button type="button" class="btn btn-primary rounded d-flex align-items-center justify-content-center text-decoration-none" style="width: 32px; height: 32px; background-color: #007bff; border-color: #007bff; color: #ffffff; font-size: 12px; font-weight: 500; padding: 0;" onclick="openTicketModal()" title="Создать тикет">
+                            <i class="fas fa-ticket-alt"></i>
                         </button>
                     {% endif %}
                     <a href="https://vk.com/qsource" target="_blank" class="bg-primary rounded d-flex align-items-center justify-content-center text-white text-decoration-none" style="width: 32px; height: 32px;">
@@ -798,15 +1021,14 @@
         
         <!-- Основная секция с разделами -->
         <div class="row mb-3">
-            <div class="col-md-6 col-6 mb-3 mb-md-0">
+            <div class="col-12 col-md-6 mb-3 mb-md-0">
                 <h6 class="text-white mb-2 text-center text-md-start">КОНТАКТЫ</h6>
-                <div class="d-flex flex-column flex-md-row align-items-center align-items-md-start gap-2 gap-md-3 text-center text-md-start">
+                <div class="d-flex flex-column align-items-center align-items-md-start gap-2 text-center text-md-start">
                     <a href="mailto:support@cysu.ru" class="text-muted text-decoration-none">support@cysu.ru</a>
-                    <span class="text-muted d-none d-md-inline">|</span>
                     <a href="https://t.me/cy7su" target="_blank" class="text-muted text-decoration-none">Поддержка в Telegram</a>
                 </div>
             </div>
-            <div class="col-md-6 col-6">
+            <div class="col-12 col-md-6">
                 <h6 class="text-white mb-2 text-center text-md-end">ИНФОРМАЦИЯ</h6>
                 <div class="d-flex justify-content-center justify-content-md-end">
                     <a href="{{ url_for('main.wiki') }}" class="text-muted text-decoration-none">База знаний</a>
@@ -816,12 +1038,12 @@
         
         <!-- Нижняя секция с копирайтом -->
         <div class="row" style="border-top: 1px solid #3a3a3a; padding-top: 1rem;">
-            <div class="col-md-6 col-6 mb-2 mb-md-0">
+            <div class="col-12 col-md-6 mb-2 mb-md-0">
                 <small class="text-muted text-center text-md-start d-block">
                     cysu, 2025 | Вагнер Никита Максимович | ИНН: 645126224659 | <a href="https://cysu.ru" class="text-muted text-decoration-none">cysu.ru</a> | Все права защищены.
                 </small>
             </div>
-            <div class="col-md-6 col-6">
+            <div class="col-12 col-md-6">
                 <small class="text-muted text-center text-md-end d-block">
                     <a href="{{ url_for('main.privacy') }}" class="text-muted text-decoration-none">Политика конфиденциальности</a> | <a href="{{ url_for('main.terms') }}" class="text-muted text-decoration-none">Условия предоставления услуг</a>
                 </small>
@@ -848,10 +1070,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const icons = document.querySelectorAll('link[rel*="icon"], link[rel="apple-touch-icon"]');
     icons.forEach(function(icon) {
         const href = icon.getAttribute('href');
-        if (href && !href.includes('v=')) {
-            icon.setAttribute('href', href + (href.includes('?') ? '&' : '?') + 'v=' + Date.now());
+        if (href && href.includes('v=')) {
+            icon.setAttribute('href', href.replace(/v=\d+/, 'v=' + Date.now()));
         }
     });
+
+
     
     // Простая анимация текста
     function initTypingAnimation() {
@@ -1005,6 +1229,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <!-- Система всплывающих уведомлений -->
+{% if not maintenance_mode %}
 <script>
 // Класс для управления уведомлениями
 class NotificationManager {
@@ -1303,14 +1528,25 @@ document.addEventListener('DOMContentLoaded', function() {
     {% if not current_user.is_authenticated %}
         // Для неавторизованных пользователей только на главной странице
         {% if request.endpoint == 'main.index' %}
-            notificationManager.show('Важно! Для просмотра материалов необходимо авторизоваться', 'auth-notification', 17000); // 17 секунд
+            notificationManager.show('Для просмотра материалов необходимо авторизоваться', 'auth-notification', 17000); // 17 секунд
         {% endif %}
     {% elif not is_subscribed %}
         // Для авторизованных пользователей без подписки (только на главной странице)
         {% if request.endpoint == 'main.index' %}
-            notificationManager.show('Важно! Для доступа к предметам необходима активная подписка. <a href="{{ url_for("main.subscription") }}" style="color: #ff6b35 !important; text-decoration: none; font-weight: bold;">Оформить подписку</a>', 'persistent', 0); // 0 = бесконечно
+            notificationManager.show('Для доступа к предметам необходима активная подписка. <a href="{{ url_for("main.subscription") }}" style="color: #ff6b35 !important; text-decoration: none; font-weight: bold;">Оформить подписку</a>', 'persistent', 0); // 0 = бесконечно
         {% endif %}
     {% endif %}
+    
+    // Уведомление о пробной подписке (показывается на всех страницах)
+    {% if current_user.is_authenticated and trial_info and trial_info.is_trial %}
+        {% if request.endpoint == 'main.index' %}
+        setTimeout(function() {
+            notificationManager.show('Пробная подписка активна!', 'info', 30000); // 30 секунд
+        }, 1000); // Показываем через 1 секунду после загрузки страницы
+        {% endif %}
+    {% endif %}
+    
+
 });
 
 // ==================== СИСТЕМА ТИКЕТОВ ====================
@@ -1615,12 +1851,13 @@ function markTicketNotificationRead(notificationId, managerNotificationId) {
         console.error('Ошибка отметки уведомления как прочитанного:', error);
     });
 }
+{% endif %}
 </script>
 
 <!-- Bootstrap и улучшения для dropdown меню -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-// Инициализация dropdown меню админки
+// Инициализация dropdown меню админки (только для десктопных устройств)
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM загружен, инициализируем dropdown меню...');
     
@@ -1637,7 +1874,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (adminDropdown) {
                 try {
-                    // Инициализация Bootstrap dropdown
+                    // Инициализация Bootstrap dropdown только для десктопных устройств
                     const dropdown = new bootstrap.Dropdown(adminDropdown, {
                         autoClose: true,
                         boundary: 'viewport'

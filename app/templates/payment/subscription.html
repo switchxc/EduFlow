@@ -5,7 +5,7 @@
 {% block content %}
 <div class="container py-4">
     <div class="row justify-content-center">
-        <div class="col-lg-8">
+        <div class="col-lg-10">
             <!-- Основная карточка -->
             <div class="card border-0" style="background: #1a1a1a; border: 1px solid #2a2a2a !important;">
                 <div class="card-header" style="background: #2a2a2a; border-bottom: 1px solid #3a3a3a; color: #ffffff;">
@@ -91,9 +91,14 @@
 
                     <!-- Кнопка оплаты -->
                     <section class="text-center">
-                        <button onclick="createPayment()" class="btn btn-primary" id="payment-btn" style="background: #007bff; border: none; padding: 0.5rem 1.5rem; font-weight: 600; border-radius: 8px; font-size: 0.8rem; width: 40%;">
-                            <i class="fas fa-credit-card me-2"></i>
-                            Оплатить <span id="price-text" style="transition: all 0.3s ease;">89₽</span>
+                        <button onclick="createPayment()" class="btn btn-primary" id="payment-btn" style="background: #007bff; border: none; padding: 0.5rem 1.5rem; font-weight: 600; border-radius: 8px; font-size: 0.8rem; width: 40%; margin: 0 auto; display: flex; align-items: center; justify-content: space-between;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-credit-card"></i>
+                                <span>Оплатить</span>
+                            </div>
+                            <span id="price-container" style="display: inline-block; position: relative; overflow: hidden; min-width: 40px;">
+                                <span id="price-text" style="display: block; transition: all 0.3s ease;">89₽</span>
+                            </span>
                         </button>
                         <div class="mt-2">
                             <small class="text-muted" style="font-size: 0.8rem;">
@@ -137,6 +142,7 @@
 
 <script>
 let selectedPeriod = '1';
+let isAnimating = false; // Флаг для предотвращения наложения анимаций
 const prices = {
     '1': 89,
     '3': 199,
@@ -146,6 +152,12 @@ const prices = {
 
 function selectPeriod(period) {
     console.log('Выбран период:', period, 'Цена:', prices[period]);
+    
+    // Если анимация уже идет, игнорируем новый клик
+    if (isAnimating) {
+        console.log('Анимация уже идет, игнорируем клик');
+        return;
+    }
     
     // Убираем выделение со всех карточек
     document.querySelectorAll('.subscription-card').forEach(card => {
@@ -165,25 +177,66 @@ function selectPeriod(period) {
     selectedCard.style.boxShadow = '0 4px 12px rgba(0, 123, 255, 0.25)';
     
     // Анимация изменения цены
+    const priceContainer = document.getElementById('price-container');
     const priceText = document.getElementById('price-text');
-    if (priceText) {
+    if (priceContainer && priceText) {
         const currentPrice = parseInt(priceText.textContent);
         const newPrice = prices[period];
         
         if (newPrice !== currentPrice) {
-            // Простая анимация с fade эффектом
-            priceText.style.opacity = '0';
-            priceText.style.transform = 'scale(0.8)';
+            // Устанавливаем флаг анимации
+            isAnimating = true;
             
+            // Создаем новый элемент с ценой
+            const newPriceElement = document.createElement('span');
+            newPriceElement.textContent = newPrice + '₽';
+            newPriceElement.style.cssText = `
+                display: block;
+                position: absolute;
+                left: 0;
+                right: 0;
+                transition: all 0.4s ease;
+            `;
+            
+            // Определяем направление анимации
+            if (newPrice > currentPrice) {
+                // Новая цена выше - появляется сверху и падает
+                newPriceElement.style.top = '-20px';
+                newPriceElement.style.opacity = '0';
+                priceText.style.transform = 'translateY(20px)';
+                priceText.style.opacity = '0';
+            } else {
+                // Новая цена ниже - появляется снизу и поднимается
+                newPriceElement.style.top = '20px';
+                newPriceElement.style.opacity = '0';
+                priceText.style.transform = 'translateY(-20px)';
+                priceText.style.opacity = '0';
+            }
+            
+            // Добавляем новый элемент
+            priceContainer.appendChild(newPriceElement);
+            
+            // Запускаем анимацию
             setTimeout(() => {
-                priceText.textContent = newPrice + '₽';
-                priceText.style.opacity = '1';
-                priceText.style.transform = 'scale(1.1)';
+                newPriceElement.style.top = '0';
+                newPriceElement.style.opacity = '1';
+            }, 50);
+            
+            // Удаляем старый элемент и обновляем ссылку
+            setTimeout(() => {
+                priceContainer.removeChild(priceText);
+                priceContainer.appendChild(newPriceElement);
+                newPriceElement.style.position = 'static';
+                newPriceElement.id = 'price-text';
                 
+                // Обновляем ссылку на элемент
+                window.priceText = newPriceElement;
+                
+                // Сбрасываем флаг анимации через дополнительную задержку
                 setTimeout(() => {
-                    priceText.style.transform = 'scale(1)';
-                }, 100);
-            }, 150);
+                    isAnimating = false;
+                }, 200);
+            }, 400);
         }
     }
     

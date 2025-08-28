@@ -27,6 +27,7 @@ from .models import (
     ShortLinkRule,
     Group,
     SubjectGroup,
+    SiteSettings,
 )
 from .forms import (
     LoginForm,
@@ -41,6 +42,7 @@ from .forms import (
     ShortenForm,
     GroupForm,
     SubjectGroupForm,
+    SiteSettingsForm,
 )
 from . import db, login_manager
 from .utils.payment_service import YooKassaService
@@ -872,12 +874,17 @@ def email_verification():
                 hashed_password = generate_password_hash(
                     pending_registration["password"]
                 )
+                # Проверяем настройку пробной подписки
+                trial_enabled = SiteSettings.get_setting('trial_subscription_enabled', True)
+                
                 user = User(
                     username=pending_registration["username"],
                     email=pending_registration["email"],
                     password=hashed_password,
                     is_verified=True,  # Пользователь подтвержден
                     group_id=pending_registration.get("group_id") if pending_registration.get("group_id") else None,
+                    is_trial_subscription=trial_enabled,  # Активируем пробную подписку только если включено
+                    trial_subscription_expires=datetime.utcnow() + timedelta(days=14) if trial_enabled else None,  # 14 дней пробной подписки
                 )
                 db.session.add(user)
                 db.session.commit()
@@ -1974,6 +1981,36 @@ def admin_subject_groups():
     )
 
 
+@bp.route("/admin/settings", methods=["GET", "POST"])
+@login_required
+def admin_settings():
+    """Админка для управления настройками сайта"""
+    if not current_user.is_admin:
+        flash("Доступ запрещён")
+        return redirect(url_for("main.index"))
+
+    form = SiteSettingsForm()
+    
+    # Загружаем текущие настройки
+    if request.method == "GET":
+        form.maintenance_mode.data = SiteSettings.get_setting('maintenance_mode', False)
+        form.trial_subscription_enabled.data = SiteSettings.get_setting('trial_subscription_enabled', True)
+    
+    if request.method == "POST" and form.validate_on_submit():
+        try:
+            # Сохраняем настройки
+            SiteSettings.set_setting('maintenance_mode', form.maintenance_mode.data, 'Включить/выключить режим технических работ')
+            SiteSettings.set_setting('trial_subscription_enabled', form.trial_subscription_enabled.data, 'Включить/выключить пробную подписку для новых аккаунтов')
+            
+            flash('Настройки успешно сохранены', 'success')
+            return redirect(url_for('main.admin_settings'))
+        except Exception as e:
+            current_app.logger.error(f"Ошибка сохранения настроек: {str(e)}")
+            flash('Ошибка при сохранении настроек', 'error')
+    
+    return render_template("admin/settings.html", form=form)
+
+
 # Добавляю context_processor для передачи users и формы на все страницы
 @bp.app_context_processor
 def inject_admin_users():
@@ -2001,18 +2038,43 @@ def inject_subscription_status():
     Context processor для передачи актуального статуса подписки в шаблоны.
 
     Возвращает:
-        dict: Словарь с ключом 'is_subscribed' для использования в шаблонах
+        dict: Словарь с ключами 'is_subscribed' и 'trial_info' для использования в шаблонах
     """
     is_subscribed = False
+    trial_info = None
+    
     if current_user.is_authenticated:
         try:
+            current_app.logger.info(f"Проверяем подписку для пользователя: {current_user.username}")
+            current_app.logger.info(f"is_trial_subscription: {current_user.is_trial_subscription}")
+            current_app.logger.info(f"trial_subscription_expires: {current_user.trial_subscription_expires}")
+            
             payment_service = YooKassaService()
             is_subscribed = payment_service.check_user_subscription(current_user)
+            
+            # Получаем информацию о пробной подписке
+            if current_user.is_trial_subscription:
+                trial_info = payment_service.get_trial_subscription_info(current_user)
+                current_app.logger.info(f"Получена информация о пробной подписке: {trial_info}")
+            else:
+                current_app.logger.info("Пользователь не имеет пробной подписки")
+                
         except Exception as e:
             current_app.logger.error(f"Error in inject_subscription_status: {e}")
             is_subscribed = False
-    return dict(is_subscribed=is_subscribed)
+            trial_info = None
+    else:
+        current_app.logger.info("Пользователь не авторизован")
+            
+    return dict(is_subscribed=is_subscribed, trial_info=trial_info)
 
+
+@bp.route("/maintenance")
+def maintenance():
+    """
+    Страница технических работ.
+    """
+    return render_template("maintenance.html")
 
 @bp.route("/wiki")
 def wiki():
@@ -2299,18 +2361,19 @@ def respond_to_ticket(ticket_id: int):
     ticket.admin_id = current_user.id
     ticket.updated_at = datetime.utcnow()
 
-    # Создаем уведомление для пользователя только если тикет не закрыт
-    if ticket.status != "closed":
-        notification = Notification(
-            user_id=ticket.user_id,
-            title="Ответ на тикет",
-            message=f'Администратор ответил на ваш тикет "{ticket.subject}"',
-            type="info",
-            link=url_for("main.user_ticket_detail", ticket_id=ticket.id),
-        )
+    # Создаем уведомление для пользователя
+    notification = Notification(
+        user_id=ticket.user_id,
+        title="Ответ на тикет",
+        message=f'Администратор ответил на ваш тикет "{ticket.subject}"',
+        type="info",
+        link=url_for("main.user_ticket_detail", ticket_id=ticket.id),
+    )
 
-        db.session.add(notification)
-        db.session.commit()
+    db.session.add(notification)
+    
+    # Сохраняем все изменения в базе данных
+    db.session.commit()
 
     flash("Ответ отправлен", "success")
     return redirect(url_for("main.ticket_detail", ticket_id=ticket_id))
@@ -2525,29 +2588,12 @@ def create_ticket():
 @login_required
 def get_notifications():
     """API для получения уведомлений пользователя"""
-    # Получаем уведомления, исключая те, что связаны с закрытыми тикетами
+    # Получаем все непрочитанные уведомления пользователя
     notifications = (
         Notification.query.filter_by(user_id=current_user.id, is_read=False)
         .order_by(Notification.created_at.desc())
         .all()
     )
-
-    # Фильтруем уведомления от закрытых тикетов
-    filtered_notifications = []
-    for notification in notifications:
-        # Если это уведомление о тикете, проверяем его статус
-        if notification.link and "/my-tickets/" in notification.link:
-            try:
-                ticket_id = int(notification.link.split("/")[-1])
-                ticket = Ticket.query.get(ticket_id)
-                if ticket and ticket.status != "closed":
-                    filtered_notifications.append(notification)
-            except (ValueError, IndexError):
-                # Если не удалось извлечь ID тикета, включаем уведомление
-                filtered_notifications.append(notification)
-        else:
-            # Если это не уведомление о тикете, включаем его
-            filtered_notifications.append(notification)
 
     return jsonify(
         {
@@ -2561,7 +2607,7 @@ def get_notifications():
                     "link": n.link,
                     "created_at": n.created_at.strftime("%d.%m.%Y в %H:%M"),
                 }
-                for n in filtered_notifications
+                for n in notifications
             ],
         }
     )

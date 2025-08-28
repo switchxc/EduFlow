@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Технические работы - cysu</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #0e0e0f 0%, #1a1a1a 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .maintenance-container {
+            text-align: center;
+            max-width: 600px;
+            padding: 2rem;
+        }
+        
+        .maintenance-icon {
+            font-size: 5rem;
+            color: #ffc107;
+            margin-bottom: 2rem;
+            animation: pulse 2s infinite;
+        }
+        
+        .maintenance-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 1.5rem;
+            color: #ffffff;
+        }
+        
+        .maintenance-message {
+            font-size: 1.2rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+            color: #cccccc;
+        }
+        
+        .maintenance-info {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .maintenance-info h5 {
+            color: #ffc107;
+            margin-bottom: 1rem;
+        }
+        
+        .maintenance-info ul {
+            text-align: left;
+            margin-bottom: 0;
+        }
+        
+        .maintenance-info li {
+            margin-bottom: 0.5rem;
+            color: #cccccc;
+        }
+        
+        .admin-login {
+            margin-top: 2rem;
+        }
+        
+        .admin-login a {
+            color: #ffc107;
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+        
+        .admin-login a:hover {
+            color: #ffdb4d;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 2rem 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ffc107, #ffdb4d);
+            border-radius: 3px;
+            animation: progress 3s ease-in-out infinite;
+        }
+        
+        @keyframes progress {
+            0% { width: 0%; }
+            50% { width: 70%; }
+            100% { width: 100%; }
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            background: #28a745;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+            animation: blink 1.5s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+    </style>
+</head>
+<body>
+    <div class="maintenance-container">
+        <div class="maintenance-icon">
+            <i class="fas fa-tools"></i>
+        </div>
+        
+        <h1 class="maintenance-title">Технические работы</h1>
+        
+        <p class="maintenance-message">
+            В настоящее время сайт недоступен из-за проведения технических работ. 
+            Мы работаем над улучшением функциональности и скоро вернемся к работе.
+        </p>
+        
+        <div class="progress-bar">
+            <div class="progress-fill"></div>
+        </div>
+        
+        <div class="maintenance-info">
+            <h5>
+                <i class="fas fa-info-circle me-2"></i>
+                Что происходит?
+            </h5>
+            <ul>
+                <li><i class="fas fa-check me-2 text-success"></i>Обновление системы безопасности</li>
+                <li><i class="fas fa-check me-2 text-success"></i>Улучшение производительности</li>
+                <li><i class="fas fa-check me-2 text-success"></i>Добавление новых функций</li>
+                <li><i class="fas fa-clock me-2 text-warning"></i>Оптимизация базы данных</li>
+            </ul>
+        </div>
+        
+        <div class="maintenance-info">
+            <h5>
+                <i class="fas fa-clock me-2"></i>
+                Ожидаемое время завершения
+            </h5>
+            <p class="mb-0">
+                <span class="status-indicator"></span>
+                Работы ведутся в активном режиме
+            </p>
+        </div>
+        
+        <div class="admin-login">
+            <small>
+                Администратор? 
+                <a href="{{ url_for('main.login') }}">
+                    <i class="fas fa-sign-in-alt me-1"></i>Войти в систему
+                </a>
+            </small>
+        </div>
+    </div>
+    
+    <script>
+        // Добавляем динамическое обновление времени
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('ru-RU');
+            document.title = `Технические работы - ${timeString} - cysu`;
+        }
+        
+        // Обновляем время каждую секунду
+        setInterval(updateTime, 1000);
+        updateTime();
+        
+        // Добавляем случайные сообщения о прогрессе
+        const progressMessages = [
+            "Оптимизация базы данных...",
+            "Обновление кэша...",
+            "Проверка безопасности...",
+            "Тестирование функций...",
+            "Финальная проверка..."
+        ];
+        
+        let messageIndex = 0;
+        function updateProgressMessage() {
+            const messageElement = document.querySelector('.maintenance-message');
+            if (messageElement) {
+                messageElement.textContent = progressMessages[messageIndex];
+                messageIndex = (messageIndex + 1) % progressMessages.length;
+            }
+        }
+        
+        // Обновляем сообщения каждые 5 секунд
+        setInterval(updateProgressMessage, 5000);
+    </script>
+</body>
+</html>

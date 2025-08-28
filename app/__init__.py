@@ -143,6 +143,41 @@ def create_app():
     from .views import bp
     app.register_blueprint(bp)
     
+    # Context processor для проверки технических работ
+    @app.context_processor
+    def inject_maintenance_mode():
+        """Добавляет информацию о режиме технических работ в шаблоны"""
+        try:
+            from .models import SiteSettings
+            maintenance_mode = SiteSettings.get_setting('maintenance_mode', False)
+            return dict(maintenance_mode=maintenance_mode)
+        except Exception as e:
+            app.logger.error(f'Error in inject_maintenance_mode: {e}')
+            return dict(maintenance_mode=False)
+    
+    # Middleware для проверки технических работ
+    @app.before_request
+    def check_maintenance_mode():
+        """Проверяет режим технических работ"""
+        # Пропускаем статические файлы и некоторые маршруты
+        if request.endpoint == 'static' or request.endpoint in ['main.maintenance', 'main.login', 'main.logout']:
+            return
+        
+        try:
+            # Импортируем здесь, чтобы избежать циклических импортов
+            from .models import SiteSettings
+            from flask_login import current_user
+            
+            # Проверяем, включен ли режим технических работ
+            maintenance_mode = SiteSettings.get_setting('maintenance_mode', False)
+            if maintenance_mode:
+                # Если пользователь не админ, перенаправляем на страницу технических работ
+                if not current_user.is_authenticated or not current_user.is_admin:
+                    # Перенаправляем на страницу технических работ
+                    return redirect(url_for('main.maintenance'))
+        except Exception as e:
+            app.logger.error(f'Error checking maintenance mode: {e}')
+    
     # Обработчик ошибки 404 на уровне приложения
     @app.errorhandler(404)
     def not_found(error):

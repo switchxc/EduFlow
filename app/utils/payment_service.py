@@ -451,6 +451,19 @@ class YooKassaService:
         Возвращает:
             bool: True если подписка активна
         """
+        # Сначала проверяем пробную подписку
+        if user.is_trial_subscription:
+            if user.trial_subscription_expires and user.trial_subscription_expires < datetime.utcnow():
+                # Пробная подписка истекла
+                user.is_trial_subscription = False
+                user.trial_subscription_expires = None
+                db.session.commit()
+                current_app.logger.info(
+                    f"Пробная подписка пользователя {user.username} истекла"
+                )
+                return False
+            return True
+
         if not user.is_subscribed:
             return False
 
@@ -496,3 +509,52 @@ class YooKassaService:
             return False
 
         return True
+
+    def get_trial_subscription_info(self, user: User) -> dict:
+        """
+        Получает информацию о пробной подписке пользователя
+
+        Параметры:
+            user (User): Пользователь для проверки
+
+        Возвращает:
+            dict: Словарь с информацией о пробной подписке
+        """
+        if not user.is_trial_subscription:
+            return {
+                'is_trial': False,
+                'days_left': 0,
+                'expires_at': None
+            }
+        
+        if not user.trial_subscription_expires:
+            return {
+                'is_trial': True,
+                'days_left': 0,
+                'expires_at': None
+            }
+        
+        now = datetime.utcnow()
+        if user.trial_subscription_expires < now:
+            # Пробная подписка истекла
+            user.is_trial_subscription = False
+            user.trial_subscription_expires = None
+            db.session.commit()
+            return {
+                'is_trial': False,
+                'days_left': 0,
+                'expires_at': None
+            }
+        
+        # Вычисляем оставшиеся дни
+        time_left = user.trial_subscription_expires - now
+        days_left = time_left.days
+        hours_left = time_left.seconds // 3600
+        
+        return {
+            'is_trial': True,
+            'days_left': days_left,
+            'hours_left': hours_left,
+            'expires_at': user.trial_subscription_expires,
+            'total_hours_left': days_left * 24 + hours_left
+        }

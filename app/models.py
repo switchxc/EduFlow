@@ -41,6 +41,8 @@ class User(UserMixin, db.Model):
     is_subscribed = db.Column(db.Boolean, default=False)
     subscription_expires = db.Column(db.DateTime)
     is_manual_subscription = db.Column(db.Boolean, default=False)  # Подписка выдана вручную администратором
+    is_trial_subscription = db.Column(db.Boolean, default=False)  # Пробная подписка на 14 дней
+    trial_subscription_expires = db.Column(db.DateTime)  # Дата окончания пробной подписки
     is_verified = db.Column(db.Boolean, default=False)  # Подтверждение email
     group_id = db.Column(db.Integer, db.ForeignKey('group.id'), nullable=True)  # Новая связь с группой
     submissions = db.relationship('Submission', backref='user', lazy=True, cascade='all, delete-orphan')
@@ -301,3 +303,40 @@ class ShortLinkRule(db.Model):
 
     def __repr__(self) -> str:
         return f'<ShortLinkRule link_id={self.short_link_id} expires_at={self.expires_at} max_clicks={self.max_clicks}>'
+
+
+class SiteSettings(db.Model):
+    """Модель для хранения настроек сайта"""
+    id = db.Column(db.Integer, primary_key=True)
+    key = db.Column(db.String(100), unique=True, nullable=False)
+    value = db.Column(db.Text, nullable=False)
+    description = db.Column(db.String(255))
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def __repr__(self) -> str:
+        return f'<SiteSettings {self.key}: {self.value}>'
+    
+    @classmethod
+    def get_setting(cls, key: str, default=None):
+        """Получает значение настройки по ключу"""
+        setting = cls.query.filter_by(key=key).first()
+        if setting:
+            # Пытаемся преобразовать в boolean для переключателей
+            if setting.value.lower() in ['true', 'false']:
+                return setting.value.lower() == 'true'
+            return setting.value
+        return default
+    
+    @classmethod
+    def set_setting(cls, key: str, value: str, description: str = None):
+        """Устанавливает значение настройки"""
+        setting = cls.query.filter_by(key=key).first()
+        if setting:
+            setting.value = str(value)
+            if description:
+                setting.description = description
+        else:
+            setting = cls(key=key, value=str(value), description=description)
+            db.session.add(setting)
+        db.session.commit()
+        return setting

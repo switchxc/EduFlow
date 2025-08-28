@@ -180,3 +180,10 @@ class ShortenForm(FlaskForm):
         default='',
     )
     submit = SubmitField('Сократить')
+
+
+class SiteSettingsForm(FlaskForm):
+    """Форма для управления настройками сайта"""
+    maintenance_mode = BooleanField('Технические работы')
+    trial_subscription_enabled = BooleanField('Включить пробную подписку для новых аккаунтов')
+    submit = SubmitField('Сохранить настройки')

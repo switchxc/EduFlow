@@ -847,38 +847,54 @@ input[type="file"] {
     }
     
     /* Улучшение футера на мобильных */
-    footer .col-6 {
-        padding-left: 5px;
-        padding-right: 5px;
+    footer .col-12 {
+        padding-left: 10px;
+        padding-right: 10px;
+        margin-bottom: 1rem;
     }
     
     footer h6 {
-        font-size: 0.8rem;
-        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+        margin-bottom: 0.75rem;
     }
     
     footer small {
-        font-size: 0.7rem;
-        line-height: 1.3;
+        font-size: 0.8rem;
+        line-height: 1.4;
     }
     
     footer a {
-        font-size: 0.7rem;
+        font-size: 0.8rem;
     }
     
     /* Верхняя секция футера на мобильных */
     footer .fs-5 {
-        font-size: 1.1rem !important;
+        font-size: 1.2rem !important;
     }
     
     footer .bg-primary.rounded {
-        width: 28px !important;
-        height: 28px !important;
+        width: 32px !important;
+        height: 32px !important;
     }
     
     footer .bg-info.rounded {
-        width: 28px !important;
-        height: 28px !important;
+        width: 32px !important;
+        height: 32px !important;
+    }
+    
+    /* Кнопка тикета на мобильных */
+    footer .btn-primary {
+        /* Размеры и стили задаются через inline стили в HTML */
+        width: 32px !important;
+        height: 32px !important;
+        padding: 0 !important;
+        min-width: 32px !important;
+        min-height: 32px !important;
+        max-width: 32px !important;
+        max-height: 32px !important;
+        background-color: #007bff !important;
+        border-color: #007bff !important;
+        color: #ffffff !important;
     }
     
     /* Профиль */
@@ -933,38 +949,54 @@ input[type="file"] {
     }
     
     /* Футер на очень маленьких экранах */
-    footer .col-6 {
-        padding-left: 3px;
-        padding-right: 3px;
+    footer .col-12 {
+        padding-left: 8px;
+        padding-right: 8px;
+        margin-bottom: 0.75rem;
     }
     
     footer h6 {
-        font-size: 0.75rem;
-        margin-bottom: 0.3rem;
+        font-size: 0.85rem;
+        margin-bottom: 0.5rem;
     }
     
     footer small {
-        font-size: 0.65rem;
-        line-height: 1.2;
+        font-size: 0.75rem;
+        line-height: 1.3;
     }
     
     footer a {
-        font-size: 0.65rem;
+        font-size: 0.75rem;
     }
     
     /* Верхняя секция футера на очень маленьких экранах */
     footer .fs-5 {
-        font-size: 1rem !important;
+        font-size: 1.1rem !important;
     }
     
     footer .bg-primary.rounded {
-        width: 24px !important;
-        height: 24px !important;
+        width: 28px !important;
+        height: 28px !important;
     }
     
     footer .bg-info.rounded {
-        width: 24px !important;
-        height: 24px !important;
+        width: 28px !important;
+        height: 28px !important;
+    }
+    
+    /* Кнопка тикета на очень маленьких экранах */
+    footer .btn-primary {
+        /* Размеры и стили задаются через inline стили в HTML */
+        width: 28px !important;
+        height: 28px !important;
+        padding: 0 !important;
+        min-width: 28px !important;
+        min-height: 28px !important;
+        max-width: 28px !important;
+        max-height: 28px !important;
+        background-color: #007bff !important;
+        border-color: #007bff !important;
+        color: #ffffff !important;
     }
     
     .card-body {

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Настройки сайта - cysu{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="fas fa-cogs me-2"></i>Настройки сайта
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.csrf_token }}
+                    
+                    <div class="mb-4">
+                        <h5 class="text-primary mb-3">
+                            <i class="fas fa-tools me-2"></i>Основные настройки
+                        </h5>
+                        
+                        <div class="form-check form-switch mb-3">
+                            {{ form.maintenance_mode(class="form-check-input", id="maintenance_mode") }}
+                            <label class="form-check-label" for="maintenance_mode">
+                                <strong>{{ form.maintenance_mode.label }}</strong>
+                            </label>
+                            <div class="form-text text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                При включении все пользователи (кроме администраторов) будут видеть страницу технических работ
+                            </div>
+                        </div>
+                        
+                        <div class="form-check form-switch mb-3">
+                            {{ form.trial_subscription_enabled(class="form-check-input", id="trial_subscription_enabled") }}
+                            <label class="form-check-label" for="trial_subscription_enabled">
+                                <strong>{{ form.trial_subscription_enabled.label }}</strong>
+                            </label>
+                            <div class="form-text text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                При включении новые пользователи автоматически получат пробную подписку на 14 дней
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>{{ form.submit.label }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
